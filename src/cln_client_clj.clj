@@ -32,3 +32,25 @@
   (let [channel (SocketChannel/open (StandardProtocolFamily/UNIX))]
     (.connect channel (UnixDomainSocketAddress/of socket-file))
     channel))
+
+(defn call
+  "Call METHOD with PAYLOAD in lightningd via SOCKET-FILE.
+  If no PAYLOAD, call with empty [] payload."
+  ([socket-file method]
+   (str socket-file " " method)
+   (call socket-file method []))
+  ([socket-file method payload]
+   (let [channel (connect socket-file)
+         req {:jsonrpc "2.0"
+              :method method
+              :params payload
+              :id "1"}]
+     (->> (json/write-str req :escape-slash false)
+          (.getBytes)
+          ByteBuffer/wrap
+          (.write channel))
+     (:result (json/read-str (read channel) :key-fn keyword)))))
+
+
+(comment
+  (call "/tmp/l1-regtest/regtest/lightning-rpc" "getinfo"))

@@ -1,0 +1,4 @@
+{:deps
+ {org.clojure/clojure {:mvn/version "1.11.1"}
+  cln-client-clj/cln-client-clj {:local/root ".."}}
+ }
