@@ -1,0 +1,34 @@
+Core Lightning JSON-RPC client.
+
+* Tests
+
+You can run all the tests with:
+
+#+BEGIN_SRC tms
+$ poetry shell
+$ poetry install
+$ make test
+#+END_SRC
+
+To install ~poetry~, see https://python-poetry.org.
+
+Note that you only need to enter in the ~poetry~ shell (and install the
+Python dependencies) once.
+
+To test ~cln-client-clj~ against Core Lightning using ~pyln-testing~
+library, run the following:
+
+#+BEGIN_SRC tms
+$ poetry shell
+$ poetry install
+$ make pytest
+#+END_SRC
+
+Again, ~poetry~ instructions are just issued once.
+
+To test Clojure (no interaction with Core Lightning), run the
+following:
+
+#+BEGIN_SRC tms
+$ make cljtest
+#+END_SRC
