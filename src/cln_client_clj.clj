@@ -40,15 +40,27 @@
    (call socket-file method []))
   ([socket-file method payload]
    (let [channel (connect socket-file)
+         req-id "1"
          req {:jsonrpc "2.0"
               :method method
               :params payload
-              :id "1"}]
+              :id req-id}]
      (->> (json/write-str req :escape-slash false)
           (.getBytes)
           ByteBuffer/wrap
           (.write channel))
-     (:result (json/read-str (read channel) :key-fn keyword)))))
+     (let [resp (-> (read channel) (json/read-str :key-fn keyword))
+           resp-id (:id resp)]
+       (if (= resp-id req-id)
+         (:result resp)
+         (throw
+          (ex-info
+           (format "Incorrect 'id' %s in response: %s.  The request was: %s"
+                   resp-id resp req)
+           {:resp-id resp-id
+            :req-id req-id
+            :resp resp
+            :req req})))))))
 
 
 (comment

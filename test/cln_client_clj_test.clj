@@ -19,4 +19,22 @@
          (-> socket-file client/connect client/read))
        "foo\nbar\nbaz")))
 
+(deftest call-test
+  ;; test that we raise an error if we receive a response
+  ;; from lightningd with and id that don't the one we send
+  ;; in our request
+  (is (thrown-with-msg?
+       Throwable
+       #"Incorrect 'id' .+ in response: .+\.  The request was: .+ "
+       (let [msg-wrong-id "{\"jsonrpc\":\"2.0\",\"id\":\"WRONG-ID\",\"result\": []}\n\n"
+             socket-file "/tmp/socket-file"
+             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg-wrong-id socket-file)]
+         (doto (Thread. (fn []
+                          (io/delete-file socket-file true)
+                          ;; start socket server and send msg-wrong-id
+                          (sh "bash" "-c" send-msg-cmd)))
+           .start)
+         (Thread/sleep 1000) ;; wait for socket server to start
+         (client/call socket-file "getinfo")))))
+
 ;; (run-tests 'cln-client-clj-test)
