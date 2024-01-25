@@ -1,0 +1,4 @@
+.pytest_cache
+.cpcache
+pytest/.cpcache
+pytest/__pycache__
