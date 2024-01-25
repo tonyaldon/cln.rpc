@@ -9,15 +9,14 @@
   (is (=
        (let [msg "foo\nbar\nbaz\n\ndiscarded"
              socket-file "/tmp/socket-file"
-             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)
-             _ (doto (Thread. (fn []
-                                (io/delete-file socket-file true)
-                                (sh "bash" "-c" send-msg-cmd)))
-                 .start)
-             channel (do (Thread/sleep 1000) ;; wait for socket server to start
-                         (client/connect socket-file))
-             read (client/read channel)]
-         read)
+             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
+         (doto (Thread. (fn []
+                          (io/delete-file socket-file true)
+                          ;; start socket server and send msg
+                          (sh "bash" "-c" send-msg-cmd)))
+           .start)
+         (Thread/sleep 1000) ;; wait for socket server to start
+         (-> socket-file client/connect client/read))
        "foo\nbar\nbaz")))
 
 ;; (run-tests 'cln-client-clj-test)
