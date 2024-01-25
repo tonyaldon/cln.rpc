@@ -1,6 +1,6 @@
-(ns getinfo
+(ns call
   (:require [cln-client-clj :as client])
   (:import java.nio.ByteBuffer))
 
-(defn main [{:keys [socket-file]}]
+(defn getinfo [{:keys [socket-file]}]
   (print (:id (client/call socket-file "getinfo"))))
