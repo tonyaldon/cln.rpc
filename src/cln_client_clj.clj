@@ -37,7 +37,6 @@
   "Call METHOD with PAYLOAD in lightningd via SOCKET-FILE.
   If no PAYLOAD, call with empty [] payload."
   ([socket-file method]
-   (str socket-file " " method)
    (call socket-file method []))
   ([socket-file method payload]
    (let [channel (connect socket-file)
