@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [read])
   (:require [clojure.data.json :as json])
   (:require [clojure.string :as str])
+  (:require [com.brunobonacci.mulog :as u])
   (:import java.nio.channels.SocketChannel
            java.net.StandardProtocolFamily
            java.net.UnixDomainSocketAddress
@@ -35,20 +36,29 @@
 
 (defn call
   "Call METHOD with PAYLOAD in lightningd via SOCKET-FILE.
-  If no PAYLOAD, call with empty [] payload."
+
+  If no PAYLOAD, call with empty [] payload.
+
+  JSON-ID-PREFIX string is used as the first part of the JSON-RPC
+  request id.  Default value is \"cln-client-clj\".  For a
+  getinfo call with JSON-ID-PREFIX being \"my-prefix\" the request
+  id looks like this:
+
+      my-prefix:getinfo/123"
   ([socket-file method]
    (call socket-file method []))
   ([socket-file method payload]
+   (call socket-file method payload "cln-client-clj"))
+  ([socket-file method payload json-id-prefix]
    (let [channel (connect socket-file)
-         req-id "1"
+         req-id (format "%s:%s#%s" json-id-prefix method (int (rand 100000)))
          req {:jsonrpc "2.0"
               :method method
               :params (or payload [])
-              :id req-id}]
-     (->> (json/write-str req :escape-slash false)
-          (.getBytes)
-          ByteBuffer/wrap
-          (.write channel))
+              :id req-id}
+         req-str (json/write-str req :escape-slash false)]
+     (->> req-str .getBytes ByteBuffer/wrap (.write channel))
+     (u/log ::request-sent :req req :req-id req-id :req-str req-str)
      (let [resp (-> (read channel) (json/read-str :key-fn keyword))
            resp-id (:id resp)]
        (if (= resp-id req-id)
@@ -61,7 +71,3 @@
             :req-id req-id
             :resp resp
             :req req})))))))
-
-
-(comment
-  (call "/tmp/l1-regtest/regtest/lightning-rpc" "getinfo"))
