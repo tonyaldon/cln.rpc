@@ -43,7 +43,7 @@
          req-id "1"
          req {:jsonrpc "2.0"
               :method method
-              :params payload
+              :params (or payload [])
               :id req-id}]
      (->> (json/write-str req :escape-slash false)
           (.getBytes)

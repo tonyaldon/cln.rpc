@@ -8,8 +8,14 @@ def test_call(node_factory):
     node_info = node.rpc.getinfo()
     socket_file = (Path(node_info["lightning-dir"]) / "lightning-rpc").as_posix()
 
-    # call to getinfo
-    getinfo_cmd = f"clojure -X call/getinfo :socket-file '\"{socket_file}\"'"
     os.chdir("pytest")
+
+    # call to getinfo
+    # 1) default case
+    getinfo_cmd = f"clojure -X call/getinfo :socket-file '\"{socket_file}\"'"
+    getinfo_str = os.popen(getinfo_cmd).read()
+    assert json.loads(getinfo_str) == node_info
+    # 2) test payload
+    getinfo_cmd = f"clojure -X call/getinfo :socket-file '\"{socket_file}\"' :test-payload true"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == node_info
