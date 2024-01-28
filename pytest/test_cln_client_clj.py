@@ -1,14 +1,13 @@
 from pyln.testing.fixtures import *
 import json
 import os
-from pathlib import Path
+
+os.chdir("pytest")
 
 def test_call(node_factory):
     node = node_factory.get_node()
     node_info = node.rpc.getinfo()
-    socket_file = (Path(node_info["lightning-dir"]) / "lightning-rpc").as_posix()
-
-    os.chdir("pytest")
+    socket_file = os.path.join(node_info["lightning-dir"], "lightning-rpc")
 
     # call to getinfo
     # 1) default case
