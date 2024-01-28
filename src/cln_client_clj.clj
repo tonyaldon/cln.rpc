@@ -29,10 +29,35 @@
     (.close socket-channel)
     resp))
 
+(defn symlink [target]
+  (let [tmpdir (System/getProperty "java.io.tmpdir")
+        link-path (->>
+                   (subs (.toString (random-uuid)) 0 18)
+                   (str "lightning-rpc-")
+                   vector
+                   (into-array String)
+                   (java.nio.file.Paths/get tmpdir))]
+    (java.nio.file.Files/createSymbolicLink
+     link-path
+     (java.nio.file.Paths/get target (into-array String []))
+     (into-array java.nio.file.attribute.FileAttribute []))
+    (.toString link-path)))
+
 (defn connect [socket-file]
   (let [channel (SocketChannel/open (StandardProtocolFamily/UNIX))]
-    (.connect channel (UnixDomainSocketAddress/of socket-file))
-    channel))
+    (try
+      (.connect channel (UnixDomainSocketAddress/of socket-file))
+      channel
+      (catch Exception e
+        (.close channel)
+        (if (= (.getMessage e) "Unix domain path too long")
+          (let [channel (SocketChannel/open (StandardProtocolFamily/UNIX))]
+            (->>
+             (symlink socket-file)
+             UnixDomainSocketAddress/of
+             (.connect channel))
+            channel)
+          (throw e))))))
 
 (defn call
   "Call METHOD with PAYLOAD in lightningd via SOCKET-FILE.

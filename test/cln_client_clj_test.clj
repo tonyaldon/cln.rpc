@@ -37,4 +37,13 @@
          (Thread/sleep 1000) ;; wait for socket server to start
          (client/call socket-file "getinfo")))))
 
+(deftest symlink-test
+  (let [target (.toString (java.io.File/createTempFile "cln-client-clj-" nil))
+        link (client/symlink target)]
+    (is (java.nio.file.Files/isSameFile
+         (java.nio.file.Paths/get link (into-array String []))
+         (java.nio.file.Paths/get target (into-array String []))))
+    (io/delete-file target true)
+    (io/delete-file link true)))
+
 ;; (run-tests 'cln-client-clj-test)
