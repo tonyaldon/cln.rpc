@@ -1,4 +1,5 @@
 from pyln.testing.fixtures import *
+from ephemeral_port_reserve import reserve
 import json
 import os
 
@@ -30,3 +31,19 @@ def test_call(node_factory):
     jsonrpc_id_str = os.popen(jsonrpc_id_cmd).read()
     print(jsonrpc_id_str)
     assert re.search(r"^my-prefix:getinfo#[0-9]+$", jsonrpc_id_str)
+
+def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, db_provider):
+    lightning_dir = os.path.join(directory, "path-too-long-" * 15)
+    os.makedirs(lightning_dir)
+    db = db_provider.get_db(lightning_dir, "test_unix_socket_path_too_long", 1)
+    db.provider = db_provider
+    node = LightningNode(1, lightning_dir, bitcoind, executor, False, db=db, port=reserve())
+    node.start()
+
+    socket_file = os.path.join(lightning_dir, "regtest", "lightning-rpc")
+
+    # call to getinfo
+    getinfo_cmd = f"clojure -X call/getinfo :socket-file '\"{socket_file}\"'"
+    getinfo_str = os.popen(getinfo_cmd).read()
+    assert json.loads(getinfo_str) == node.rpc.getinfo()
+    node.stop()
