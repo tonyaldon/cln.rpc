@@ -1,4 +1,4 @@
-(ns call
+(ns rpc
   (:require [clnrpc-clj :as rpc])
   (:require [clojure.data.json :as json])
   (:require [com.brunobonacci.mulog :as u])
