@@ -1,4 +1,4 @@
-(ns cln-client-clj
+(ns clnrpc-clj
   "Core Lightning JSON-RPC client."
   (:refer-clojure :exclude [read])
   (:require [clojure.data.json :as json])
@@ -65,7 +65,7 @@
   If no PAYLOAD, call with empty [] payload.
 
   JSON-ID-PREFIX string is used as the first part of the JSON-RPC
-  request id.  Default value is \"cln-client-clj\".  For a
+  request id.  Default value is \"clnrpc-clj\".  For a
   getinfo call with JSON-ID-PREFIX being \"my-prefix\" the request
   id looks like this:
 
@@ -73,7 +73,7 @@
   ([socket-file method]
    (call socket-file method []))
   ([socket-file method payload]
-   (call socket-file method payload "cln-client-clj"))
+   (call socket-file method payload "clnrpc-clj"))
   ([socket-file method payload json-id-prefix]
    (let [channel (connect socket-file)
          req-id (format "%s:%s#%s" json-id-prefix method (int (rand 100000)))
@@ -96,3 +96,7 @@
             :req-id req-id
             :resp resp
             :req req})))))))
+
+(comment
+  (call "/tmp/l1-regtest/regtest/lightning-rpc" "getinfo")
+  )

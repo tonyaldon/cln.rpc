@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cln-client-clj"
+name = "clnrpc-clj"
 version = "0.1"
 description = "Core Lightning JSON-RPC client."
 authors = ["Tony Aldon <tony@tonyaldon.com>"]

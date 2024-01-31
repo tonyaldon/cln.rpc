@@ -1,7 +1,7 @@
-(ns cln-client-clj-test
-  "Test cln-client-clj library."
+(ns clnrpc-clj-test
+  "Test clnrpc-clj library."
   (:require [clojure.test :refer :all])
-  (:require [cln-client-clj :as client])
+  (:require [clnrpc-clj :as client])
   (:require [clojure.java.shell :refer [sh]])
   (:require [clojure.java.io :as io]))
 
@@ -38,7 +38,7 @@
          (client/call socket-file "getinfo")))))
 
 (deftest symlink-test
-  (let [target (.toString (java.io.File/createTempFile "cln-client-clj-" nil))
+  (let [target (.toString (java.io.File/createTempFile "clnrpc-clj-" nil))
         link (client/symlink target)]
     (is (java.nio.file.Files/isSameFile
          (java.nio.file.Paths/get link (into-array String []))
@@ -46,4 +46,4 @@
     (io/delete-file target true)
     (io/delete-file link true)))
 
-;; (run-tests 'cln-client-clj-test)
+;; (run-tests 'clnrpc-clj-test)

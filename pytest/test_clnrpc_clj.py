@@ -21,11 +21,11 @@ def test_call(node_factory):
     assert json.loads(getinfo_str) == node_info
 
     # Check the jsonrpc id used in the getinfo request to lightningd
-    # 1) default prefix: cln-client-clj
+    # 1) default prefix: clnrpc-clj
     jsonrpc_id_cmd = f"clojure -X call/jsonrpc-id :socket-file '\"{socket_file}\"'"
     jsonrpc_id_str = os.popen(jsonrpc_id_cmd).read()
     print(jsonrpc_id_str)
-    assert re.search(r"^cln-client-clj:getinfo#[0-9]+$", jsonrpc_id_str)
+    assert re.search(r"^clnrpc-clj:getinfo#[0-9]+$", jsonrpc_id_str)
     # 2) custom prefix: my-prefix
     jsonrpc_id_cmd = f"clojure -X call/jsonrpc-id :socket-file '\"{socket_file}\"' :json-id-prefix '\"my-prefix\"'"
     jsonrpc_id_str = os.popen(jsonrpc_id_cmd).read()

@@ -15,7 +15,7 @@ To install ~poetry~, see https://python-poetry.org.
 Note that you only need to enter in the ~poetry~ shell (and install the
 Python dependencies) once.
 
-To test ~cln-client-clj~ against Core Lightning using ~pyln-testing~
+To test ~clnrpc-clj~ against Core Lightning using ~pyln-testing~
 library, run the following:
 
 #+BEGIN_SRC tms
