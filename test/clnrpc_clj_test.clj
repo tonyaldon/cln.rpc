@@ -1,7 +1,7 @@
 (ns clnrpc-clj-test
   "Test clnrpc-clj library."
   (:require [clojure.test :refer :all])
-  (:require [clnrpc-clj :as client])
+  (:require [clnrpc-clj :as rpc])
   (:require [clojure.java.shell :refer [sh]])
   (:require [clojure.java.io :as io]))
 
@@ -16,12 +16,12 @@
                           (sh "bash" "-c" send-msg-cmd)))
            .start)
          (Thread/sleep 1000) ;; wait for socket server to start
-         (-> socket-file client/connect client/read))
+         (-> socket-file rpc/connect rpc/read))
        "foo\nbar\nbaz")))
 
 (deftest call-test
   ;; test that we raise an error if we receive a response
-  ;; from lightningd with and id that don't the one we send
+  ;; from lightningd with an id that don't match the one we send
   ;; in our request
   (is (thrown-with-msg?
        Throwable
@@ -35,11 +35,11 @@
                           (sh "bash" "-c" send-msg-cmd)))
            .start)
          (Thread/sleep 1000) ;; wait for socket server to start
-         (client/call socket-file "getinfo")))))
+         (rpc/call socket-file "getinfo")))))
 
 (deftest symlink-test
   (let [target (.toString (java.io.File/createTempFile "clnrpc-clj-" nil))
-        link (client/symlink target)]
+        link (rpc/symlink target)]
     (is (java.nio.file.Files/isSameFile
          (java.nio.file.Paths/get link (into-array String []))
          (java.nio.file.Paths/get target (into-array String []))))
