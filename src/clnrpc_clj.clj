@@ -60,7 +60,7 @@
           (throw e))))))
 
 (defn call
-  "Send METHOD to be called to lightningd with PAYLOAD if any.
+  "Send METHOD to lightningd which is called with PAYLOAD arguments if any.
 
   If no PAYLOAD, send with [] empty payload.
 
