@@ -12,11 +12,11 @@ def test_call(node_factory):
 
     # call to getinfo
     # 1) default case
-    getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{socket_file}\"'"
+    getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{socket_file}\"'"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == node_info
     # 2) test payload
-    getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{socket_file}\"' :test-payload true"
+    getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{socket_file}\"' :test-payload true"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == node_info
 
@@ -43,7 +43,7 @@ def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, 
     socket_file = os.path.join(lightning_dir, "regtest", "lightning-rpc")
 
     # call to getinfo
-    getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{socket_file}\"'"
+    getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{socket_file}\"'"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == node.rpc.getinfo()
     node.stop()

@@ -5,7 +5,7 @@
   (:require [clojure.edn :as edn])
   (:require [clojure.java.io :as io]))
 
-(defn getinfo [{:keys [socket-file test-payload]}]
+(defn call-getinfo [{:keys [socket-file test-payload]}]
   (let [rpc-info {:socket-file socket-file}]
     (-> (if test-payload
           ;; to test we pass [] and not `null` in the json request
