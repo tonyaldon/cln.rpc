@@ -6,24 +6,25 @@
   (:require [clojure.java.io :as io]))
 
 (defn getinfo [{:keys [socket-file test-payload]}]
-  (-> (if test-payload
-        ;; to test we pass [] and not `null` in the json request
-        ;; when `payload` argument of `call` in `nil`
-        (rpc/call socket-file "getinfo" nil)
-        (rpc/call socket-file "getinfo"))
-      (json/write *out* :escape-slash false)))
+  (let [rpc-info {:socket-file socket-file}]
+    (-> (if test-payload
+          ;; to test we pass [] and not `null` in the json request
+          ;; when `payload` argument of `call` in `nil`
+          (rpc/call rpc-info "getinfo" nil)
+          (rpc/call rpc-info "getinfo"))
+        (json/write *out* :escape-slash false))))
 
 (defn jsonrpc-id
   "Print the jsonrpc id used in the getinfo request to lightningd.
   SOCKET-FILE is lightningd's socket file."
   [{:keys [socket-file json-id-prefix]}]
-  (let [log-file "/tmp/jsonrpc-id"]
+  (let [log-file "/tmp/jsonrpc-id"
+        rpc-info {:socket-file socket-file
+                  :json-id-prefix json-id-prefix}]
     (io/delete-file log-file true)
     (def stop (u/start-publisher!
                {:type :simple-file :filename log-file}))
-    (if json-id-prefix
-      (rpc/call socket-file "getinfo" nil json-id-prefix)
-      (rpc/call socket-file "getinfo"))
+    (rpc/call rpc-info "getinfo")
     (Thread/sleep 1000) ;; wait for log dispatch
     (stop)
     (with-open [in (java.io.PushbackReader. (io/reader log-file))]

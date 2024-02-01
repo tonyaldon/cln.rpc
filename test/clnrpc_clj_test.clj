@@ -25,11 +25,12 @@
        #"Incorrect 'id' .+ in response: .+\.  The request was: .+"
        (let [msg-wrong-id "{\"jsonrpc\":\"2.0\",\"id\":\"WRONG-ID\",\"result\": []}\n\n"
              socket-file (.toString (java.io.File/createTempFile "socket-file-" nil))
-             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg-wrong-id socket-file)]
+             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg-wrong-id socket-file)
+             rpc-info {:socket-file socket-file}]
          ;; start socket server and send `msg-wrong-id`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
-         (rpc/call socket-file "getinfo")))))
+         (rpc/call rpc-info "getinfo")))))
 
 (deftest symlink-test
   (let [target (.toString (java.io.File/createTempFile "clnrpc-clj-" nil))

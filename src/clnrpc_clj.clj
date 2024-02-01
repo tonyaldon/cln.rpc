@@ -60,23 +60,25 @@
           (throw e))))))
 
 (defn call
-  "Call METHOD with PAYLOAD in lightningd via SOCKET-FILE.
+  "Send METHOD to be called to lightningd with PAYLOAD if any.
 
-  If no PAYLOAD, call with empty [] payload.
+  If no PAYLOAD, send with [] empty payload.
 
-  JSON-ID-PREFIX string is used as the first part of the JSON-RPC
-  request id.  Default value is \"clnrpc-clj\".  For a
-  getinfo call with JSON-ID-PREFIX being \"my-prefix\" the request
+  The connection is done via :socket-file specified in RPC-INFO.
+
+  :json-id-prefix key of RPC-INFO is used as the first part of
+  the JSON-RPC request id.  Default value is \"clnrpc-clj\".  For a
+  getinfo call with :json-id-prefix being \"my-prefix\" the request
   id looks like this:
 
       my-prefix:getinfo/123"
-  ([socket-file method]
-   (call socket-file method []))
-  ([socket-file method payload]
-   (call socket-file method payload "clnrpc-clj"))
-  ([socket-file method payload json-id-prefix]
-   (let [channel (connect socket-file)
-         req-id (format "%s:%s#%s" json-id-prefix method (int (rand 100000)))
+  ([rpc-info method]
+   (call rpc-info method []))
+  ([rpc-info method payload]
+   (let [channel (connect (:socket-file rpc-info))
+         req-id (format "%s:%s#%s"
+                        (or (:json-id-prefix rpc-info) "clnrpc-clj")
+                        method (int (rand 100000)))
          req {:jsonrpc "2.0"
               :method method
               :params (or payload [])
@@ -98,5 +100,5 @@
             :req req})))))))
 
 (comment
-  (call "/tmp/l1-regtest/regtest/lightning-rpc" "getinfo")
+  (call {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"} "getinfo")
   )
