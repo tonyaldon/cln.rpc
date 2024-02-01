@@ -14,6 +14,22 @@
           (rpc/call rpc-info "getinfo"))
         (json/write *out* :escape-slash false))))
 
+(defn call-invoice [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}
+        payload {:amount_msat 10000
+                 :label (str "label-" (rand))
+                 :description "description"}]
+    (-> (rpc/call rpc-info "invoice" payload)
+        :bolt11
+        print)))
+
+(defn call-pay [{:keys [socket-file bolt11]}]
+  (let [rpc-info {:socket-file socket-file}
+        payload {:bolt11 bolt11}]
+    (-> (rpc/call rpc-info "pay" payload)
+        :status
+        print)))
+
 (defn jsonrpc-id
   "Print the jsonrpc id used in the getinfo request to lightningd.
   SOCKET-FILE is lightningd's socket file."
