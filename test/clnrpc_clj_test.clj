@@ -8,13 +8,10 @@
 (deftest read-test
   (is (=
        (let [msg "foo\nbar\nbaz\n\ndiscarded"
-             socket-file "/tmp/socket-file"
+             socket-file (.toString (java.io.File/createTempFile "socket-file-" nil))
              send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
-         (doto (Thread. (fn []
-                          (io/delete-file socket-file true)
-                          ;; start socket server and send msg
-                          (sh "bash" "-c" send-msg-cmd)))
-           .start)
+         ;; start socket server and send `msg`
+         (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
          (-> socket-file rpc/connect rpc/read))
        "foo\nbar\nbaz")))
@@ -25,15 +22,12 @@
   ;; in our request
   (is (thrown-with-msg?
        Throwable
-       #"Incorrect 'id' .+ in response: .+\.  The request was: .+ "
+       #"Incorrect 'id' .+ in response: .+\.  The request was: .+"
        (let [msg-wrong-id "{\"jsonrpc\":\"2.0\",\"id\":\"WRONG-ID\",\"result\": []}\n\n"
-             socket-file "/tmp/socket-file"
+             socket-file (.toString (java.io.File/createTempFile "socket-file-" nil))
              send-msg-cmd (format "echo '%s' | nc -U %s -l" msg-wrong-id socket-file)]
-         (doto (Thread. (fn []
-                          (io/delete-file socket-file true)
-                          ;; start socket server and send msg-wrong-id
-                          (sh "bash" "-c" send-msg-cmd)))
-           .start)
+         ;; start socket server and send `msg-wrong-id`
+         (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
          (rpc/call socket-file "getinfo")))))
 
