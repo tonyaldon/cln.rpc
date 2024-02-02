@@ -161,16 +161,10 @@
            (throw
             (ex-info
              (format (format "RPC error: %s" (or (:message error) "")))
-             {:type :rpc-error
-              :error error
-              :req req
-              :resp resp}))
+             {:type :rpc-error :error error :req req :resp resp}))
            (:result resp))
          (throw
           (ex-info
            (format "Incorrect 'id' %s in response: %s.  The request was: %s"
                    resp-id resp req)
-           {:resp-id resp-id
-            :req-id req-id
-            :resp resp
-            :req req})))))))
+           {:resp-id resp-id :req-id req-id :resp resp :req req})))))))
