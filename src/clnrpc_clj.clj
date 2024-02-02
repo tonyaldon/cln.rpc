@@ -89,7 +89,15 @@
      (let [resp (-> (read channel) (json/read-str :key-fn keyword))
            resp-id (:id resp)]
        (if (= resp-id req-id)
-         (:result resp)
+         (if-let [error (:error resp)]
+           (throw
+            (ex-info
+             (format (format "RPC error: %s" (or (:message error) "")))
+             {:type :rpc-error
+              :error error
+              :req req
+              :resp resp}))
+           (:result resp))
          (throw
           (ex-info
            (format "Incorrect 'id' %s in response: %s.  The request was: %s"
@@ -101,4 +109,5 @@
 
 (comment
   (call {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"} "getinfo")
+  (call {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"} "foo")
   )

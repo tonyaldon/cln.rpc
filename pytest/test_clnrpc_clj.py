@@ -35,13 +35,25 @@ def test_call(node_factory):
     assert re.search(r"^my-prefix:getinfo#[0-9]+$", jsonrpc_id_str)
 
     # call methods with payload: invoice and pay
-    # l2 creates an bolt11 invoice
+    # l2 creates a bolt11 invoice
     l2_invoice_cmd = f"clojure -X rpc/call-invoice :socket-file '\"{l2_socket_file}\"'"
     l2_bolt11 = os.popen(l2_invoice_cmd).read()
     # l1 pay the bolt11 invoice
     l1_pay_cmd = f"clojure -X rpc/call-pay :socket-file '\"{l1_socket_file}\"' :bolt11 '\"{l2_bolt11}\"'"
     l1_pay_status = os.popen(l1_pay_cmd).read()
     assert l1_pay_status == "complete"
+
+    # check that we throw an error when lightningd replies with an "error" field
+    # Send a request to lightningd with an unknown command
+    unknown_command_foo_cmd = f"clojure -X rpc/call-unknown-command-foo :socket-file '\"{l1_socket_file}\"'"
+    unknown_command_foo_error = os.popen(unknown_command_foo_cmd).read()
+    assert json.loads(unknown_command_foo_error) == {"code": -32601,
+                                                     "message": "Unknown command 'foo'"}
+    # Send a invoice request with missing label parameter
+    invoice_missing_label_cmd = f"clojure -X rpc/call-invoice-missing-label :socket-file '\"{l1_socket_file}\"'"
+    invoice_missing_label_error = os.popen(invoice_missing_label_cmd).read()
+    assert json.loads(invoice_missing_label_error) == {"code":-32602,
+                                                       "message":"missing required parameter: label"}
 
 def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, db_provider):
     lightning_dir = os.path.join(directory, "path-too-long-" * 15)

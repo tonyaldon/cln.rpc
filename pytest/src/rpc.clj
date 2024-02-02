@@ -30,6 +30,27 @@
         :status
         print)))
 
+(defn call-unknown-command-foo [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}]
+    (try
+      (rpc/call rpc-info "foo")
+      (catch clojure.lang.ExceptionInfo e
+        (when (= (:type (ex-data e)) :rpc-error)
+          (-> (ex-data e)
+              :error
+              (json/write *out* :escape-slash false)))))))
+
+(defn call-invoice-missing-label [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}
+        payload {:amount_msat 10000}]
+    (try
+      (rpc/call rpc-info "invoice" payload)
+      (catch clojure.lang.ExceptionInfo e
+        (when (= (:type (ex-data e)) :rpc-error)
+          (-> (ex-data e)
+              :error
+              (json/write *out* :escape-slash false)))))))
+
 (defn jsonrpc-id
   "Print the jsonrpc id used in the getinfo request to lightningd.
   SOCKET-FILE is lightningd's socket file."
