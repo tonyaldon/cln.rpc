@@ -64,6 +64,8 @@
 
   If no PAYLOAD, send with [] empty payload.
 
+  If FILTER specified, lightningd may filter the reponse.
+
   The connection is done via :socket-file specified in RPC-INFO.
 
   :json-id-prefix key of RPC-INFO is used as the first part of
@@ -71,7 +73,61 @@
   getinfo call with :json-id-prefix being \"my-prefix\" the request
   id looks like this:
 
-      my-prefix:getinfo/123"
+      my-prefix:getinfo/123
+
+  Let's look at a few examples.
+
+  Assuming we are running a node on regtest reachable via the socket file
+
+      /tmp/l1-regtest/regtest/lightning-rpc
+
+  we can do a getinfo request like this
+
+      (call {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"}
+            \"getinfo\")
+
+  which returns:
+
+      {:address [], :color \"023916\", ,,, , :id \"02391...387e4\", ,,,}
+
+  We can let lightningd filter the response and return only the node id
+  by specifying the filter argument like this:
+
+  ...
+
+  We can create an invoice by calling
+
+      (let [rpc-info {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"}
+            payload {:amount_msat 10000
+                     :label (str \"label-\" (rand))
+                     :description \"description\"}]
+        (call rpc-info \"invoice\" payload))
+
+  which returns:
+
+       {:payment_hash \"d9704...a27b4\",
+        :expires_at 1707475596,
+        :bolt11 \"lnbcrt100n1...0t5v8z\",
+        :payment_secret \"ef66b...5be58\",
+        :created_index 5}
+
+  We can let lightningd filter the response and return only the bolt11
+  invoice string by specifying the filter argument like this:
+
+  ...
+
+  If for some reason lightningd can't process our request, raise a
+  clojure.lang.ExceptionInfo exception.  We can catch and return
+  the \"error\" field of lightningd's response like this:
+
+      (try
+       (call {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"} \"foo\")
+       (catch clojure.lang.ExceptionInfo e
+         (when (= (:type (ex-data e)) :rpc-error)
+           (:error (ex-data e)))))
+
+      ;; {:code -32601, :message \"Unknown command 'foo'\"}
+  "
   ([rpc-info method]
    (call rpc-info method []))
   ([rpc-info method payload]
