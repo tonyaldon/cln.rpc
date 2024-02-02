@@ -60,9 +60,9 @@
           (throw e))))))
 
 (defn call
-  "Send METHOD to lightningd which is called with PAYLOAD arguments if any.
+  "Send METHOD to lightningd which is called with PARAMS arguments if any.
 
-  If no PAYLOAD, send with [] empty payload.
+  If no PARAMS, send with [] empty params.
 
   If FILTER specified, lightningd may filter the reponse.
 
@@ -103,10 +103,10 @@
   We can create an invoice by calling
 
       (let [rpc-info {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"}
-            payload {:amount_msat 10000
+            params {:amount_msat 10000
                      :label (str \"label-\" (rand))
                      :description \"description\"}]
-        (call rpc-info \"invoice\" payload))
+        (call rpc-info \"invoice\" params))
 
   which returns:
 
@@ -120,7 +120,7 @@
   invoice string by specifying the filter argument like this
 
       (let [,,,]
-        (call rpc-info \"invoice\" payload {:bolt11 true}))
+        (call rpc-info \"invoice\" params {:bolt11 true}))
 
   which gives us:
 
@@ -139,16 +139,16 @@
       ;; {:code -32601, :message \"Unknown command 'foo'\"}"
   ([rpc-info method]
    (call rpc-info method [] nil))
-  ([rpc-info method payload]
-   (call rpc-info method payload nil))
-  ([rpc-info method payload filter]
+  ([rpc-info method params]
+   (call rpc-info method params nil))
+  ([rpc-info method params filter]
    (let [channel (connect (:socket-file rpc-info))
          req-id (format "%s:%s#%s"
                         (or (:json-id-prefix rpc-info) "clnrpc-clj")
                         method (int (rand 100000)))
          req (merge {:jsonrpc "2.0"
                      :method method
-                     :params (or payload [])
+                     :params (or params [])
                      :id req-id}
                     (or (and filter {:filter filter}) nil))
          req-str (json/write-str req :escape-slash false)]

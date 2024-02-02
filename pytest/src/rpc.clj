@@ -5,28 +5,28 @@
   (:require [clojure.edn :as edn])
   (:require [clojure.java.io :as io]))
 
-(defn call-getinfo [{:keys [socket-file test-payload]}]
+(defn call-getinfo [{:keys [socket-file test-params]}]
   (let [rpc-info {:socket-file socket-file}]
-    (-> (if test-payload
+    (-> (if test-params
           ;; to test we pass [] and not `null` in the json request
-          ;; when `payload` argument of `call` in `nil`
+          ;; when `params` argument of `call` is `nil`
           (rpc/call rpc-info "getinfo" nil)
           (rpc/call rpc-info "getinfo"))
         (json/write *out* :escape-slash false))))
 
 (defn call-invoice [{:keys [socket-file]}]
   (let [rpc-info {:socket-file socket-file}
-        payload {:amount_msat 10000
+        params {:amount_msat 10000
                  :label (str "label-" (rand))
                  :description "description"}]
-    (-> (rpc/call rpc-info "invoice" payload)
+    (-> (rpc/call rpc-info "invoice" params)
         :bolt11
         print)))
 
 (defn call-pay [{:keys [socket-file bolt11]}]
   (let [rpc-info {:socket-file socket-file}
-        payload {:bolt11 bolt11}]
-    (-> (rpc/call rpc-info "pay" payload)
+        params {:bolt11 bolt11}]
+    (-> (rpc/call rpc-info "pay" params)
         :status
         print)))
 
@@ -42,9 +42,9 @@
 
 (defn call-invoice-missing-label [{:keys [socket-file]}]
   (let [rpc-info {:socket-file socket-file}
-        payload {:amount_msat 10000}]
+        params {:amount_msat 10000}]
     (try
-      (rpc/call rpc-info "invoice" payload)
+      (rpc/call rpc-info "invoice" params)
       (catch clojure.lang.ExceptionInfo e
         (when (= (:type (ex-data e)) :rpc-error)
           (-> (ex-data e)
@@ -58,10 +58,10 @@
 
 (defn call-invoice-with-filter [{:keys [socket-file]}]
   (let [rpc-info {:socket-file socket-file}
-        payload {:amount_msat 10000
-                 :label "invoice-with-filter"
-                 :description "description"}]
-    (-> (rpc/call rpc-info "invoice" payload {:bolt11 true})
+        params {:amount_msat 10000
+                :label "invoice-with-filter"
+                :description "description"}]
+    (-> (rpc/call rpc-info "invoice" params {:bolt11 true})
         (json/write *out* :escape-slash false))))
 
 (defn jsonrpc-id

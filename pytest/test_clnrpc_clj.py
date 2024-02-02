@@ -19,8 +19,8 @@ def test_call(node_factory):
     getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{l1_socket_file}\"'"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == l1_info
-    # 2) test payload
-    getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{l1_socket_file}\"' :test-payload true"
+    # 2) test params
+    getinfo_cmd = f"clojure -X rpc/call-getinfo :socket-file '\"{l1_socket_file}\"' :test-params true"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == l1_info
 
@@ -36,7 +36,7 @@ def test_call(node_factory):
     print(jsonrpc_id_str)
     assert re.search(r"^my-prefix:getinfo#[0-9]+$", jsonrpc_id_str)
 
-    # call methods with payload: invoice and pay
+    # call methods with params: invoice and pay
     # l2 creates a bolt11 invoice
     l2_invoice_cmd = f"clojure -X rpc/call-invoice :socket-file '\"{l2_socket_file}\"'"
     l2_bolt11 = os.popen(l2_invoice_cmd).read()
