@@ -91,9 +91,14 @@
       {:address [], :color \"023916\", ,,, , :id \"02391...387e4\", ,,,}
 
   We can let lightningd filter the response and return only the node id
-  by specifying the filter argument like this:
+  by specifying the filter argument like this
 
-  ...
+      (call {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"}
+            \"getinfo\" nil {:id true})
+
+  which gives us:
+
+      {:id \"02391...387e4\"}
 
   We can create an invoice by calling
 
@@ -112,9 +117,14 @@
         :created_index 5}
 
   We can let lightningd filter the response and return only the bolt11
-  invoice string by specifying the filter argument like this:
+  invoice string by specifying the filter argument like this
 
-  ...
+      (let [,,,]
+        (call rpc-info \"invoice\" payload {:bolt11 true}))
+
+  which gives us:
+
+      {:bolt11 \"lnbcrt100n1...0t5v8z\"}
 
   If for some reason lightningd can't process our request, raise a
   clojure.lang.ExceptionInfo exception.  We can catch and return
@@ -126,19 +136,21 @@
          (when (= (:type (ex-data e)) :rpc-error)
            (:error (ex-data e)))))
 
-      ;; {:code -32601, :message \"Unknown command 'foo'\"}
-  "
+      ;; {:code -32601, :message \"Unknown command 'foo'\"}"
   ([rpc-info method]
-   (call rpc-info method []))
+   (call rpc-info method [] nil))
   ([rpc-info method payload]
+   (call rpc-info method payload nil))
+  ([rpc-info method payload filter]
    (let [channel (connect (:socket-file rpc-info))
          req-id (format "%s:%s#%s"
                         (or (:json-id-prefix rpc-info) "clnrpc-clj")
                         method (int (rand 100000)))
-         req {:jsonrpc "2.0"
-              :method method
-              :params (or payload [])
-              :id req-id}
+         req (merge {:jsonrpc "2.0"
+                     :method method
+                     :params (or payload [])
+                     :id req-id}
+                    (or (and filter {:filter filter}) nil))
          req-str (json/write-str req :escape-slash false)]
      (->> req-str .getBytes ByteBuffer/wrap (.write channel))
      (u/log ::request-sent :req req :req-id req-id :req-str req-str)
@@ -162,8 +174,3 @@
             :req-id req-id
             :resp resp
             :req req})))))))
-
-(comment
-  (call {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"} "getinfo")
-  (call {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"} "foo")
-  )

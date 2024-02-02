@@ -3,7 +3,9 @@ from ephemeral_port_reserve import reserve
 import json
 import os
 
+
 os.chdir("pytest")
+
 
 def test_call(node_factory):
     l1, l2 = node_factory.line_graph(2)
@@ -43,6 +45,14 @@ def test_call(node_factory):
     l1_pay_status = os.popen(l1_pay_cmd).read()
     assert l1_pay_status == "complete"
 
+    # call methods with filters: getinfo and invoice
+    getinfo_with_filter_cmd = f"clojure -X rpc/call-getinfo-with-filter :socket-file '\"{l1_socket_file}\"'"
+    getinfo_with_filter_str = os.popen(getinfo_with_filter_cmd).read()
+    assert json.loads(getinfo_with_filter_str) == {"id": l1_info["id"]}
+    invoice_with_filter_cmd = f"clojure -X rpc/call-invoice-with-filter :socket-file '\"{l1_socket_file}\"'"
+    invoice_with_filter_str = os.popen(invoice_with_filter_cmd).read()
+    assert json.loads(invoice_with_filter_str) == {"bolt11": l1.rpc.listinvoices("invoice-with-filter")["invoices"][0]["bolt11"]}
+
     # check that we throw an error when lightningd replies with an "error" field
     # Send a request to lightningd with an unknown command
     unknown_command_foo_cmd = f"clojure -X rpc/call-unknown-command-foo :socket-file '\"{l1_socket_file}\"'"
@@ -54,6 +64,7 @@ def test_call(node_factory):
     invoice_missing_label_error = os.popen(invoice_missing_label_cmd).read()
     assert json.loads(invoice_missing_label_error) == {"code":-32602,
                                                        "message":"missing required parameter: label"}
+
 
 def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, db_provider):
     lightning_dir = os.path.join(directory, "path-too-long-" * 15)

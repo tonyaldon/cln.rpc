@@ -51,6 +51,19 @@
               :error
               (json/write *out* :escape-slash false)))))))
 
+(defn call-getinfo-with-filter [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}]
+    (-> (rpc/call rpc-info "getinfo" nil {:id true})
+        (json/write *out* :escape-slash false))))
+
+(defn call-invoice-with-filter [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}
+        payload {:amount_msat 10000
+                 :label "invoice-with-filter"
+                 :description "description"}]
+    (-> (rpc/call rpc-info "invoice" payload {:bolt11 true})
+        (json/write *out* :escape-slash false))))
+
 (defn jsonrpc-id
   "Print the jsonrpc id used in the getinfo request to lightningd.
   SOCKET-FILE is lightningd's socket file."
