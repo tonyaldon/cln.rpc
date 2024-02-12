@@ -4,6 +4,7 @@
   (:require [clnrpc-clj :as rpc])
   (:require [clojure.java.shell :refer [sh]])
   (:require [clojure.java.io :as io]))
+  (:require [babashka.fs :as fs]))
 
 (deftest read-test
   (is (=
@@ -33,12 +34,10 @@
          (rpc/call rpc-info "getinfo")))))
 
 (deftest symlink-test
-  (let [target (.toString (java.io.File/createTempFile "clnrpc-clj-" nil))
+  (let [target (str (fs/create-temp-file))
         link (rpc/symlink target)]
-    (is (java.nio.file.Files/isSameFile
-         (java.nio.file.Paths/get link (into-array String []))
-         (java.nio.file.Paths/get target (into-array String []))))
-    (io/delete-file target true)
-    (io/delete-file link true)))
+    (is (fs/same-file? link target))
+    (fs/delete link)
+    (fs/delete target)))
 
 ;; (run-tests 'clnrpc-clj-test)

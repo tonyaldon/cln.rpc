@@ -4,6 +4,7 @@
   (:require [clojure.data.json :as json])
   (:require [clojure.string :as str])
   (:require [com.brunobonacci.mulog :as u])
+  (:require [babashka.fs :as fs])
   (:import java.nio.channels.SocketChannel
            java.net.StandardProtocolFamily
            java.net.UnixDomainSocketAddress
@@ -30,18 +31,10 @@
     resp))
 
 (defn symlink [target]
-  (let [tmpdir (System/getProperty "java.io.tmpdir")
-        link-path (->>
-                   (subs (.toString (random-uuid)) 0 18)
-                   (str "lightning-rpc-")
-                   vector
-                   (into-array String)
-                   (java.nio.file.Paths/get tmpdir))]
-    (java.nio.file.Files/createSymbolicLink
-     link-path
-     (java.nio.file.Paths/get target (into-array String []))
-     (into-array java.nio.file.attribute.FileAttribute []))
-    (.toString link-path)))
+  (let [filename (str "lightning-rpc-" (subs (str (random-uuid)) 0 18))
+        link-path (str (fs/file (fs/temp-dir) filename))]
+    (fs/create-sym-link link-path target)
+    link-path))
 
 (defn connect-to [socket-file]
   (let [channel (SocketChannel/open (StandardProtocolFamily/UNIX))]
