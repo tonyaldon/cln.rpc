@@ -13,7 +13,7 @@
          ;; start socket server and send `msg`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
-         (-> socket-file rpc/connect rpc/read))
+         (-> socket-file rpc/connect-to rpc/read))
        "foo\nbar\nbaz")))
 
 (deftest call-test

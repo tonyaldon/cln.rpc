@@ -43,7 +43,7 @@
      (into-array java.nio.file.attribute.FileAttribute []))
     (.toString link-path)))
 
-(defn connect [socket-file]
+(defn connect-to [socket-file]
   (let [channel (SocketChannel/open (StandardProtocolFamily/UNIX))]
     (try
       (.connect channel (UnixDomainSocketAddress/of socket-file))
@@ -142,7 +142,7 @@
   ([rpc-info method params]
    (call rpc-info method params nil))
   ([rpc-info method params filter]
-   (let [channel (connect (:socket-file rpc-info))
+   (let [channel (connect-to (:socket-file rpc-info))
          req-id (format "%s:%s#%s"
                         (or (:json-id-prefix rpc-info) "clnrpc-clj")
                         method (int (rand 100000)))
