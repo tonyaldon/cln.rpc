@@ -1,0 +1,255 @@
+{
+  "$schema": "../rpc-schema-draft.json",
+  "type": "object",
+  "additionalProperties": false,
+  "rpc": "invoice",
+  "title": "Command for accepting payments",
+  "description": [
+    "The **invoice** RPC command creates the expectation of a payment of a given amount of milli-satoshi: it returns a unique token which another lightning daemon can use to pay this invoice. This token includes a *route hint* description of an incoming channel with capacity to pay the invoice, if any exists."
+  ],
+  "request": {
+    "required": [
+      "amount_msat",
+      "label",
+      "description"
+    ],
+    "properties": {
+      "amount_msat": {
+        "type": "msat_or_any",
+        "description": [
+          "the string `any`, which creates an invoice that can be paid with any amount. Otherwise it is a positive value in millisatoshi precision; it can be a whole number, or a whole number ending in *msat* or *sat*, or a number with three decimal places ending in *sat*, or a number with 1 to 11 decimal places ending in *btc*"
+        ]
+      },
+      "label": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "description": [
+          "a unique string or number (which is treated as a string, so `01` is different from `1`); it is never revealed to other nodes on the lightning  network, but it can be used to query the status of this invoice"
+        ]
+      },
+      "description": {
+        "type": "string",
+        "description": [
+          "a short description of purpose of payment, e.g. *1 cup of coffee*. This value is encoded into the BOLT11 invoice and is viewable by any node you send this invoice to (unless *deschashonly* is true as described below). It must be UTF-8, and cannot use *\\u* JSON escape codes"
+        ]
+      },
+      "expiry": {
+        "type": "u64",
+        "description": [
+          "the time the invoice is valid for, in seconds. If no value is provided the default of 604800 (1 week) is used"
+        ]
+      },
+      "fallbacks": {
+        "type": "array",
+        "description": [
+          "one or more fallback addresses to include in the invoice (in order from most- preferred to least): note that these arrays are not currently tracked to fulfill the invoice"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "preimage": {
+        "type": "hex",
+        "description": [
+          "a 64-digit hex string to be used as payment preimage for the created invoice. By default, if unspecified, lightningd will generate a secure pseudorandom preimage seeded from an appropriate entropy source on your system. **IMPORTANT**: if you specify the *preimage*, you are responsible, to ensure appropriate care for generating using a secure pseudorandom generator seeded with sufficient entropy, and keeping the preimage secret. This parameter is an advanced feature intended for use with cutting-edge cryptographic protocols and should not be used unless explicitly needed"
+        ]
+      },
+      "exposeprivatechannels": {
+        "description": [
+          "if specified, it overrides the default route hint logic, which will use unpublished channels only if there are no published channels"
+        ],
+        "oneOf": [
+          {
+            "type": "boolean",
+            "description": [
+              "if *True* unpublished channels are always considered as a route hint candidate; if *False*, never"
+            ]
+          },
+          {
+            "type": "array",
+            "description": [
+              "array of short channel ids (or a remote alias), only those specific channels will be considered candidates, even if they are public or dead-ends"
+            ],
+            "items": {
+              "type": "short_channel_id"
+            }
+          },
+          {
+            "type": "short_channel_id",
+            "description": [
+              "if it is a short channel id (e.g. *1x1x3*), only this specific channel will be considered candidate, even if it is public or dead-end"
+            ]
+          }
+        ]
+      },
+      "cltv": {
+        "type": "u32",
+        "description": [
+          "if specified, sets the *min_final_cltv_expiry* for the invoice. Otherwise, it's set to the parameter **cltv-final**"
+        ]
+      },
+      "deschashonly": {
+        "type": "boolean",
+        "description": [
+          "if True, then the bolt11 returned contains a hash of the *description*, rather than the *description* itself: this allows much longer descriptions, but they must be communicated via some other mechanism."
+        ],
+        "default": "False"
+      }
+    }
+  },
+  "response": {
+    "required": [
+      "payment_hash",
+      "expires_at",
+      "created_index",
+      "bolt11",
+      "payment_secret"
+    ],
+    "properties": {
+      "bolt11": {
+        "type": "string",
+        "description": [
+          "the bolt11 string"
+        ]
+      },
+      "payment_hash": {
+        "type": "hash",
+        "description": [
+          "the hash of the *payment_preimage* which will prove payment"
+        ]
+      },
+      "payment_secret": {
+        "type": "secret",
+        "description": [
+          "the *payment_secret* to place in the onion"
+        ]
+      },
+      "expires_at": {
+        "type": "u64",
+        "description": [
+          "UNIX timestamp of when invoice expires"
+        ]
+      },
+      "created_index": {
+        "type": "u64",
+        "added": "v23.08",
+        "description": [
+          "1-based index indicating order this invoice was created in"
+        ]
+      },
+      "warning_capacity": {
+        "type": "string",
+        "description": [
+          "even using all possible channels, there's not enough incoming capacity to pay this invoice."
+        ]
+      },
+      "warning_offline": {
+        "type": "string",
+        "description": [
+          "there would be enough incoming capacity, but some channels are offline, so there isn't."
+        ]
+      },
+      "warning_deadends": {
+        "type": "string",
+        "description": [
+          "there would be enough incoming capacity, but some channels are dead-ends (no other public channels from those peers), so there isn't."
+        ]
+      },
+      "warning_private_unused": {
+        "type": "string",
+        "description": [
+          "there would be enough incoming capacity, but some channels are unannounced and *exposeprivatechannels* is *false*, so there isn't."
+        ]
+      },
+      "warning_mpp": {
+        "type": "string",
+        "description": [
+          "there is sufficient capacity, but not in a single channel, so the payer will have to use multi-part payments."
+        ]
+      }
+    }
+  },
+  "errors": [
+    "On failure, an error is returned and no invoice is created. If the",
+    "lightning process fails before responding, the caller should use",
+    "lightning-listinvoices(7) to query whether this invoice was created or",
+    "not.",
+    "",
+    "The following error codes may occur:",
+    "",
+    "- -1: Catchall nonspecific error.",
+    "- 900: An invoice with the given *label* already exists.",
+    "- 901: An invoice with the given *preimage* already exists.",
+    "- 902: None of the specified *exposeprivatechannels* were usable."
+  ],
+  "example_json_request": [
+    {
+      "id": 1,
+      "method": "invoice",
+      "params": {
+        "amount_msat": 11000000,
+        "label": "xEoCR94SIz6UIRUEkxum",
+        "description": [
+          "xEoCR94SIz6UIRUEkxum"
+        ],
+        "expiry": null,
+        "fallbacks": null,
+        "preimage": null,
+        "exposeprivatechannels": null,
+        "cltv": null,
+        "deschashonly": null
+      }
+    },
+    {
+      "id": 2,
+      "method": "invoice",
+      "params": {
+        "amount_msat": 40000000,
+        "label": "xFogt94xiz6tsRHKMzat",
+        "description": [
+          "invoice description"
+        ],
+        "expiry": null,
+        "fallbacks": null,
+        "preimage": null,
+        "exposeprivatechannels": null,
+        "cltv": null,
+        "deschashonly": null
+      }
+    }
+  ],
+  "example_json_response": [
+    {
+      "payment_hash": "072b1d20f4a7c757a56d5fb10eaed40b58b68849da41fe396cdbd2d81692875a",
+      "expires_at": 1706757730,
+      "bolt11": "lnbcrt110u1pjmr5lzsp5sfjyj3xn7ux592k36hmmt4ax98n6lgct22wvj54yck0upcmep63qpp5qu436g855lr40ftdt7csatk5pdvtdzzfmfqluwtvm0fds95jsadqdpq0pzk7s6j8y69xjt6xe25j5j4g44hsatdxqyjw5qcqp99qxpqysgquwma3zrw4cd8e8j4u9uh4gxukaacckse64kx2l9dqv8rvrysdq5r5dt38t9snqj9u5ar07h2exr4fg56wpudkhkk7gtxlyt72ku5fpqqd4fnlk",
+      "payment_secret": "82644944d3f70d42aad1d5f7b5d7a629e7afa30b529cc952a4c59fc0e3790ea2",
+      "created_index": 1,
+      "warning_deadends": "Insufficient incoming capacity, once dead-end peers were excluded"
+    },
+    {
+      "payment_hash": "51127e4a40186a1f9e2fa8495d521473d1be347a39e583cbe96a23d3cbbe93f6",
+      "expires_at": 1706765461,
+      "bolt11": "lnbcrt1m1pjmrus4sp53ls0wjm69hpu8gp8lhuuxkxsxhq2kr5lu2nr0766x27l5cruwapqpp52yf8ujjqrp4pl8304py465s5w0gmudr688jc8jlfdg3a8ja7j0mqdpqdcuh5vt0dpe5yanfx45x2n6vwveyg6zxxqyjw5qcqp9rzjqfnwgkvdr57yzh6h92zg3qctvrm7w38djg67kzcm4yeg8vc4cq63sqqqvuqqqpqqqqqqqqqpqqqqqzsqqc9qxpqysgqpdrrch5ty8c870u39znf6p5vt8new7y7n9j74xwc8nz6w637cvk4f763ux8cvd579720z3sgkzshumvnce9qs70p0px98t6s4a5lqzcqashdmd",
+      "payment_secret": "8fe0f74b7a2dc3c3a027fdf9c358d035c0ab0e9fe2a637fb5a32bdfa607c7742",
+      "created_index": 2
+    }
+  ],
+  "author": [
+    "Rusty Russell <<rusty@rustcorp.com.au>> is mainly responsible."
+  ],
+  "see_also": [
+    "lightning-listinvoices(7)",
+    "lightning-delinvoice(7)",
+    "lightning-pay(7)"
+  ],
+  "resources": [
+    "Main web site: <https://github.com/ElementsProject/lightning>"
+  ]
+}
