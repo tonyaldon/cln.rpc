@@ -2,3 +2,4 @@
 .cpcache
 pytest/.cpcache
 pytest/__pycache__
+lightning/
