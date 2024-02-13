@@ -161,3 +161,5 @@
            (format "Incorrect 'id' %s in response: %s.  The request was: %s"
                    resp-id resp req)
            {:resp-id resp-id :req-id req-id :resp resp :req req})))))))
+
+(load "rpcmethods")

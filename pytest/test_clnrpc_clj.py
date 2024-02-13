@@ -81,3 +81,43 @@ def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, 
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == l1.rpc.getinfo()
     l1.stop()
+
+
+def test_generated_rpcmethods(node_factory):
+    l1 = node_factory.get_node()
+    l1_info = l1.rpc.getinfo()
+    l1_socket_file = os.path.join(l1_info["lightning-dir"], "lightning-rpc")
+
+    # getinfo request with clnrpc-clj/getinfo function
+    # params: 0 required / 0 optional
+    getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{l1_socket_file}\"'"
+    getinfo_str = os.popen(getinfo_cmd).read()
+    assert json.loads(getinfo_str) == l1_info
+
+    # newaddr request with clnrpc-clj/newaddr function
+    # params: 0 required / 1 optional
+    newaddr_cmd = f"clojure -X rpc/newaddr :socket-file '\"{l1_socket_file}\"'"
+    newaddr = json.loads(os.popen(newaddr_cmd).read())
+    assert newaddr.get("bech32", False) or newaddr.get("p2tr", False)
+    newaddr_p2tr_cmd = f"clojure -X rpc/newaddr :socket-file '\"{l1_socket_file}\"' :addresstype '\"p2tr\"'"
+    newaddr_p2tr = json.loads(os.popen(newaddr_p2tr_cmd).read())
+    assert newaddr_p2tr.get("p2tr", False)
+
+    # decode request with clnrpc-clj/decode function
+    # params: 1 required / 0 optional
+    bolt11 = l1.rpc.invoice(10000,"label", "description")["bolt11"]
+    decode_cmd = f"clojure -X rpc/decode :socket-file '\"{l1_socket_file}\"' :string '\"{bolt11}\"'"
+    decode_str = os.popen(decode_cmd).read()
+    assert json.loads(decode_str) == l1.rpc.decode(bolt11)
+
+    # invoice request with clnrpc-clj/invoice function
+    # params: params: 3 required / 6 optional
+    invoice_cmd = f"clojure -X rpc/invoice :socket-file '\"{l1_socket_file}\"'"
+    invoice = json.loads(os.popen(invoice_cmd).read())
+    assert(l1.rpc.decode(invoice["bolt11"]))
+
+    invoice_expiry_cltv_cmd = f"clojure -X rpc/invoice :socket-file '\"{l1_socket_file}\"' :expiry '3600' :cltv '8'"
+    invoice_expiry_cltv = json.loads(os.popen(invoice_expiry_cltv_cmd).read())
+    invoice_decoded = l1.rpc.decode(invoice_expiry_cltv["bolt11"])
+    assert invoice_decoded["expiry"] == 3600
+    assert invoice_decoded["min_final_cltv_expiry"] == 8
