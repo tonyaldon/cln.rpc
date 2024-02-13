@@ -1,5 +1,92 @@
 Core Lightning JSON-RPC client.
 
+* Install
+
+Add the following dependency to your ~deps.edn~ file (the repository is
+private):
+
+#+BEGIN_SRC clojure
+{:deps
+ {io.github.tonyaldon/clnrpc-clj
+  {:git/url "git@github.com:tonyaldon/clnrpc-clj.git"
+   :git/sha "b8c4057ae07c184a6d2fb03674abed2d7ef9937c"}}}
+#+END_SRC
+
+* Usage
+
+There is two ways to do RPC calls to ~lightningd~:
+
+1) The ~call~ function (works for any methods),
+2) Functions with the same names of ~ligthningd~ builtin methods.
+
+For instance, we can do a ~getinfo~ request to ~lightningd~ in two ways:
+
+#+BEGIN_SRC clojure
+(require '[clnrpc-clj :as rpc])
+
+;; We assume we have a node running on regtest
+(def rpc-info
+  {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"})
+
+(rpc/call rpc-info "getinfo")
+;; {:address [], :color "022ac7", :our_features {:init "080000000000000000000000000008a0882a0a69a2", :node "080000000000000000000000000088a0882a0a69a2", :channel "", :invoice "02000022024100"}, :num_active_channels 0, :num_inactive_channels 0, :lightning-dir "/tmp/l1-regtest/regtest", :binding [{:type "ipv4", :address "127.0.0.1", :port 7171}], :alias "SLEEPYWATER-v23.11", :num_peers 0, :id "022ac71e28c8004f72e576ef0b2998b29cce3a89cab351b7d6f10bd7ea0f61eec8", :num_pending_channels 0, :network "regtest", :version "v23.11", :blockheight 1, :fees_collected_msat 0}
+
+(rpc/getinfo rpc-info)
+;; {:address [], :color "022ac7", :our_features {:init "080000000000000000000000000008a0882a0a69a2", :node "080000000000000000000000000088a0882a0a69a2", :channel "", :invoice "02000022024100"}, :num_active_channels 0, :num_inactive_channels 0, :lightning-dir "/tmp/l1-regtest/regtest", :binding [{:type "ipv4", :address "127.0.0.1", :port 7171}], :alias "SLEEPYWATER-v23.11", :num_peers 0, :id "022ac71e28c8004f72e576ef0b2998b29cce3a89cab351b7d6f10bd7ea0f61eec8", :num_pending_channels 0, :network "regtest", :version "v23.11", :blockheight 1, :fees_collected_msat 0}
+#+END_SRC
+
+And in the case the method takes arguments, like the ~invoice~ method
+for instance, we can do this:
+
+#+BEGIN_SRC clojure
+(require '[clnrpc-clj :as rpc])
+
+;; We assume we have a node running on regtest
+(def rpc-info
+  {:socket-file "/tmp/l1-regtest/regtest/lightning-rpc"})
+
+(let [params {:amount_msat 10000
+              :label (str "label-" (rand))
+              :description "description"}]
+  (rpc/call rpc-info "invoice" params))
+;; {:payment_hash "c5bfb990f2e9fb8dca4c883d469e4806979aaa2e34ed6030c42f64d1700caa27", :expires_at 1708428050, :bolt11 "lnbcrt100n1pjuk5yjsp53kc9yq0dy92rag2r5la5fjd886s66f8el3ndf7fw8mlg6ch0sl8spp5cklmny8ja8acmjjv3q75d8jgq6te423wxnkkqvxy9ajdzuqv4gnsdqjv3jhxcmjd9c8g6t0dcxqyjw5qcqp2fp4pjugnryr2hy4a2n09qphyu8ukw69nz6yesn7msvtc9xm22nh2zzaq9qx3qysgqxslpxhekuw8gf5r6pq5h0caflqzv4cmve46wp9axspzrglq89nzxdrju8lr9yxah6p7mlckrd3u6cy6qq00e7vsm3lwyuk0ljuyex0cpqd4ak9", :payment_secret "8db05201ed21543ea143a7fb44c9a73ea1ad24f9fc66d4f92e3efe8d62ef87cf", :created_index 4, :warning_capacity "Insufficient incoming channel capacity to pay invoice"}
+
+(rpc/invoice rpc-info
+             10000
+             (str "label-" (rand))
+             "description" )
+;; {:payment_hash "473277b9b5c0140b9d45cae051a6dd235405ecadf5697bd3139c9297cc964389", :expires_at 1708428135, :bolt11 "lnbcrt100n1pjuk588sp5mgjp64djtkx6r5k032auc6l5s8wcmkgs9m07ujqvukf2ztx5vuyspp5gue80wd4cq2qh829ets9rfkayd2qtm9d745hh5cnnjff0nykgwysdqjv3jhxcmjd9c8g6t0dcxqyjw5qcqp2fp4pvfxfsj9md6s70g3h5c8s20jrn4g9nplhzuudnp4pqh346e3l6v6s9qx3qysgqvg75t4p4ap5pwdga5n35pqx0ljsclzu2ktq7cvexn9mf38w7m8xkuceq8mw4rkaspac8tskws5q2hxvl936gg32cv02g7mhcnpasjkqp4s9mrf", :payment_secret "da241d55b25d8da1d2cf8abbcc6bf481dd8dd9102edfee480ce592a12cd46709", :created_index 5, :warning_capacity "Insufficient incoming channel capacity to pay invoice"}
+
+(->> (rpc/invoice rpc-info
+                  10000 (str "label-" (rand)) "description"
+                  :expiry 3600
+                  :cltv 8)
+     :bolt11
+     (rpc/decode rpc-info)
+     (#(select-keys % [:expiry :min_final_cltv_expiry])))
+;; {:expiry 3600, :min_final_cltv_expiry 8}
+#+END_SRC
+
+
+
+
+
+Note that not all the builtin ~lightningd~ method are defined.  Indeed,
+they are generated from the files in CLN ~doc/schemas~ directory and not
+all the builtin methods have a corresponding schema file.
+
+* Generate CLN RPC methods from CLN schemas directory
+
+The directory ~doc/schemas~ of CLN contains JSON schemas describing
+almost all the builtin methods.  We use it to generate the functions
+in the namespace ~clnrpc-clj~ with the same name of the builtin methods.
+
+To do so, run:
+
+#+BEGIN_SRC tms
+make rpcmethods
+#+END_SRC
+
 * Tests
 
 You can run all the tests with:
