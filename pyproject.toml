@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "clnrpc-clj"
 version = "0.1"
-description = "Core Lightning JSON-RPC client."
+description = "Core Lightning JSON-RPC client for Clojure."
 authors = ["Tony Aldon <tony@tonyaldon.com>"]
 readme = "README.org"
 

@@ -1,4 +1,4 @@
-Core Lightning JSON-RPC client.
+Core Lightning JSON-RPC client for Clojure.
 
 * Install
 
@@ -19,7 +19,7 @@ There is two ways to do RPC calls to ~lightningd~:
 1) The ~call~ function (works for any methods),
 2) Functions with the same names of ~ligthningd~ builtin methods.
 
-For instance, we can do a ~getinfo~ request to ~lightningd~ in two ways:
+For instance, we can send a ~getinfo~ request to ~lightningd~ in two ways:
 
 #+BEGIN_SRC clojure
 (require '[clnrpc-clj :as rpc])
@@ -71,7 +71,7 @@ for instance, we can do this:
 
 
 
-Note that not all the builtin ~lightningd~ method are defined.  Indeed,
+Note that not all the builtin ~lightningd~ methods are defined.  Indeed,
 they are generated from the files in CLN ~doc/schemas~ directory and not
 all the builtin methods have a corresponding schema file.
 
