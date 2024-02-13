@@ -3,13 +3,13 @@
   (:require [clojure.test :refer :all])
   (:require [clnrpc-clj :as rpc])
   (:require [clojure.java.shell :refer [sh]])
-  (:require [clojure.java.io :as io]))
+  (:import java.io.File)
   (:require [babashka.fs :as fs]))
 
 (deftest read-test
   (is (=
        (let [msg "foo\nbar\nbaz\n\ndiscarded"
-             socket-file (.toString (java.io.File/createTempFile "socket-file-" nil))
+             socket-file (str (File/createTempFile "socket-file-" nil))
              send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
          ;; start socket server and send `msg`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
@@ -25,7 +25,7 @@
        Throwable
        #"Incorrect 'id' .+ in response: .+\.  The request was: .+"
        (let [msg-wrong-id "{\"jsonrpc\":\"2.0\",\"id\":\"WRONG-ID\",\"result\": []}\n\n"
-             socket-file (.toString (java.io.File/createTempFile "socket-file-" nil))
+             socket-file (str (File/createTempFile "socket-file-" nil))
              send-msg-cmd (format "echo '%s' | nc -U %s -l" msg-wrong-id socket-file)
              rpc-info {:socket-file socket-file}]
          ;; start socket server and send `msg-wrong-id`

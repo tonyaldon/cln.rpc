@@ -20,7 +20,7 @@
                resp-acc ""]
           (.read socket-channel bb)
           (.flip bb)
-          (let [bb-str (.toString (.decode StandardCharsets/UTF_8 bb))
+          (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))
                 r (str resp-acc bb-str)]
             (if (str/includes? r "\n\n")
               (first (str/split r #"\n\n"))
