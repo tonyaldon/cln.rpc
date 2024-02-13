@@ -17,8 +17,8 @@
 (defn call-invoice [{:keys [socket-file]}]
   (let [rpc-info {:socket-file socket-file}
         params {:amount_msat 10000
-                 :label (str "label-" (rand))
-                 :description "description"}]
+                :label (str "label-" (rand))
+                :description "description"}]
     (-> (rpc/call rpc-info "invoice" params)
         :bolt11
         print)))
