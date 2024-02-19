@@ -1,6 +1,6 @@
 Core Lightning JSON-RPC client for Clojure.
 
-* Install
+* Dependency
 
 Add the following dependency to your ~deps.edn~ file (the repository is
 private):
@@ -67,13 +67,11 @@ for instance, we can do this:
 ;; {:expiry 3600, :min_final_cltv_expiry 8}
 #+END_SRC
 
-
-
-
-
 Note that not all the builtin ~lightningd~ methods are defined.  Indeed,
 they are generated from the files in CLN ~doc/schemas~ directory and not
 all the builtin methods have a corresponding schema file.
+
+To see more details, check ~clnrpc-clj/call~ docstring.
 
 * Generate CLN RPC methods from CLN schemas directory
 

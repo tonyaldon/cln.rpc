@@ -73,7 +73,7 @@ def test_call_with_enable_notifications(node_factory):
     l1_socket_file = os.path.join(l1_info["lightning-dir"], "lightning-rpc")
 
     # Call send-message-notifications defined in notify.py plugin.
-    # Accumulate in an array the 3 notifications queued in a channel
+    # Accumulate in an vector the 3 notifications queued in a channel
     # and the response at the end
     cmd = f"clojure -X rpc/call-send-message-notifications-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
     cmd_str = os.popen(cmd).read()
@@ -86,7 +86,7 @@ def test_call_with_enable_notifications(node_factory):
     assert json.loads(cmd_str) == {"foo":"bar"}
 
     # Call send-progress-notifications defined in notify.py plugin.
-    # Accumulate in an array the 3 notifications queued in a channel
+    # Accumulate in an vector the 3 notifications queued in a channel
     # and the response at the end
     cmd = f"clojure -X rpc/call-send-progress-notifications-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
     cmd_str = os.popen(cmd).read()
@@ -99,7 +99,7 @@ def test_call_with_enable_notifications(node_factory):
     assert json.loads(cmd_str) == {"foo":"bar"}
 
     # Call getinfo with notifications enabled.
-    # Accumulate in an array the notifications (they are none) queued in a channel
+    # Accumulate in an vector the notifications (they are none) queued in a channel
     # and the response at the end
     cmd = f"clojure -X rpc/call-getinfo-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
     cmd_str = os.popen(cmd).read()

@@ -16,10 +16,10 @@
   "Return the response sent by lightningd over SOCKET-CHANNEL.
   Also, close SOCKET-CHANNEL.
 
-  If NOTIFS is a channel (from async.core) and we enabled (before)
-  notifications for the JSON-RPC connection SOCKET-CHANNEL with
-  `enable-nofications` queue in NOTIFS (with async/>!!) 'message'
-  and 'progress' notifications sent by lightningd.
+  If NOTIFS is a channel (from clojure.core.async) and we enabled
+  (before) notifications for the JSON-RPC connection SOCKET-CHANNEL
+  with `enable-nofications` queue in NOTIFS (with async/>!!)
+  'message' and 'progress' notifications sent by lightningd.
 
   See CLN 'notifications' method."
   ([socket-channel]
@@ -166,7 +166,85 @@
          (when (= (:type (ex-data e)) :rpc-error)
            (:error (ex-data e)))))
 
-      ;; {:code -32601, :message \"Unknown command 'foo'\"}"
+      ;; {:code -32601, :message \"Unknown command 'foo'\"}
+
+  Some commands may send 'message' or 'progress' notifications
+  while they are processing the request.  clnrpc-clj can receive those
+  notifications.  To enable this, we just have to pass a channel
+  (from clojure.core.async) in RPC-INFO argument as value of :notifs
+  key.  The notifications will then be queued (with `>!!`) in that
+  channel.
+
+  To understand how to process those notifications, let's consider
+  the following example.
+
+  We start the plugin notify.py
+
+      #!/usr/bin/env python3
+
+      from pyln.client import Plugin
+      import time
+
+      plugin = Plugin()
+
+      @plugin.method(\"send-message-notifications\")
+      def send_message_notifications(plugin, request, **kwargs):
+          request.notify(\"foo\")
+          time.sleep(0.5)
+          request.notify(\"bar\")
+          time.sleep(0.5)
+          request.notify(\"baz\")
+          return {\"foo\": \"bar\"}
+
+      plugin.run()
+
+  on the node l1 running on regtest like this
+  (lightning directory contains lightning repository):
+
+      $ source lightning/contrib/startup_regtest.sh
+      $ python -m venv .venv
+      $ source env/bin/activate
+      $ chmod +x notify.py
+      $ start_ln
+      $ l1-cli plugin start $(pwd)/notify.py
+
+  If we use lightning-cli (l1-cli) to call send-message-notifications,
+  we get the following:
+
+      $ l1-cli send-message-notifications
+      # foo
+      # bar
+      # baz
+      {
+          \"foo\": \"bar\"
+      }
+
+  Now let's do it with clnrpc-clj.
+
+  We define a channel notifs that we pass to call function that will
+  queue the notifications sent by notify.py plugin before returning
+  the response to our send-message-notifications request.  We do that
+  in a go block so that we can dequeue those notifications in a loop
+  where we accumulate them in a vector and in which we also append
+  the response.  Finally, we return that array:
+
+      (require '[clnrpc-clj :as rpc])
+      (require '[clojure.core.async :refer [<!! go chan]])
+
+      (let [notifs (chan)
+            rpc-info {:socket-file \"/tmp/l1-regtest/regtest/lightning-rpc\"
+                      :notifs notifs}
+            resp (go (rpc/call rpc-info \"send-message-notifications\"))
+            notifs-and-resp (atom [])]
+        (loop [notif (<!! notifs)]
+          (if (= notif :no-more)
+            (swap! notifs-and-resp conj (<!! resp))
+            (do
+              (swap! notifs-and-resp conj (get-in notif [:params :message]))
+              (recur (<!! notifs)))))
+        @notifs-and-resp)
+
+      ;; [\"foo\" \"bar\" \"baz\" {:foo \"bar\"}]"
   ([rpc-info method]
    (call rpc-info method [] nil))
   ([rpc-info method params]
