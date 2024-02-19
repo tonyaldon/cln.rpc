@@ -53,16 +53,18 @@
               (json/write *out* :escape-slash false)))))))
 
 (defn call-getinfo-with-filter [{:keys [socket-file]}]
-  (let [rpc-info {:socket-file socket-file}]
-    (-> (rpc/call rpc-info "getinfo" nil {:id true})
+  (let [rpc-info {:socket-file socket-file
+                  :filter {:id true}}]
+    (-> (rpc/call rpc-info "getinfo")
         (json/write *out* :escape-slash false))))
 
 (defn call-invoice-with-filter [{:keys [socket-file]}]
-  (let [rpc-info {:socket-file socket-file}
+  (let [rpc-info {:socket-file socket-file
+                  :filter {:bolt11 true}}
         params {:amount_msat 10000
                 :label "invoice-with-filter"
                 :description "description"}]
-    (-> (rpc/call rpc-info "invoice" params {:bolt11 true})
+    (-> (rpc/call rpc-info "invoice" params)
         (json/write *out* :escape-slash false))))
 
 (defn call-send-message-notifications-with-enable-notifications
