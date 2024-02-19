@@ -3,7 +3,8 @@
   (:require [clojure.data.json :as json])
   (:require [com.brunobonacci.mulog :as u])
   (:require [clojure.edn :as edn])
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io])
+  (:require [clojure.core.async :refer [<!! go chan]]))
 
 (defn call-getinfo [{:keys [socket-file test-params]}]
   (let [rpc-info {:socket-file socket-file}]
@@ -63,6 +64,63 @@
                 :description "description"}]
     (-> (rpc/call rpc-info "invoice" params {:bolt11 true})
         (json/write *out* :escape-slash false))))
+
+(defn call-send-message-notifications-with-enable-notifications
+  [{:keys [socket-file]}]
+  (let [notifs (chan)
+        rpc-info {:socket-file socket-file
+                  :notifs notifs}
+        resp (go (rpc/call rpc-info "send-message-notifications"))
+        notifs-and-resp (atom [])]
+    (loop [notif (<!! notifs)]
+      (if (= notif :no-more)
+        (swap! notifs-and-resp conj (<!! resp))
+        (do
+          (swap! notifs-and-resp conj (get-in notif [:params :message]))
+          (recur (<!! notifs)))))
+    (json/write @notifs-and-resp *out* :escape-slash false)))
+
+(defn call-send-message-notifications-without-enable-notifications
+  [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}]
+    (-> (rpc/call rpc-info "send-message-notifications")
+        (json/write *out* :escape-slash false))))
+
+(defn call-send-progress-notifications-with-enable-notifications
+  [{:keys [socket-file]}]
+  (let [notifs (chan)
+        rpc-info {:socket-file socket-file
+                  :notifs notifs}
+        resp (go (rpc/call rpc-info "send-progress-notifications"))
+        notifs-and-resp (atom [])]
+    (loop [notif (<!! notifs)]
+      (if (= notif :no-more)
+        (swap! notifs-and-resp conj (<!! resp))
+        (do
+          (swap! notifs-and-resp conj (get-in notif [:params :num]))
+          (recur (<!! notifs)))))
+    (json/write @notifs-and-resp *out* :escape-slash false)))
+
+(defn call-send-progress-notifications-without-enable-notifications
+  [{:keys [socket-file]}]
+  (let [rpc-info {:socket-file socket-file}]
+    (-> (rpc/call rpc-info "send-progress-notifications")
+        (json/write *out* :escape-slash false))))
+
+(defn call-getinfo-with-enable-notifications
+  [{:keys [socket-file]}]
+  (let [notifs (chan)
+        rpc-info {:socket-file socket-file
+                  :notifs notifs}
+        resp (go (rpc/call rpc-info "getinfo"))
+        notifs-and-resp (atom [])]
+    (loop [notif (<!! notifs)]
+      (if (= notif :no-more)
+        (swap! notifs-and-resp conj (<!! resp))
+        (do
+          (swap! notifs-and-resp conj (get-in notif [:params :message]))
+          (recur (<!! notifs)))))
+    (json/write @notifs-and-resp *out* :escape-slash false)))
 
 (defn jsonrpc-id
   "Print the jsonrpc id used in the getinfo request to lightningd.

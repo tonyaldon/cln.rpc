@@ -5,18 +5,54 @@
   (:require [clnrpc-utils :as utils])
   (:require [clojure.java.shell :refer [sh]])
   (:import java.io.File)
-  (:require [babashka.fs :as fs]))
+  (:require [babashka.fs :as fs])
+  (:require [clojure.data.json :as json])
+  (:require [clojure.core.async :as a :refer [<!! chan]]))
 
 (deftest read-test
   (is (=
-       (let [msg "foo\nbar\nbaz\n\ndiscarded"
+       (let [msg (format "%s\n\ndiscarded" (json/write-str {:id "id"}))
              socket-file (str (File/createTempFile "socket-file-" nil))
              send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
          ;; start socket server and send `msg`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
          (-> socket-file rpc/connect-to rpc/read))
-       "foo\nbar\nbaz")))
+       {:id "id"}))
+  (is (=
+       (let [msg (format "%s\n\n%s\n\n%s\n\ndiscarded"
+                         (json/write-str {:no-id "notif-1"})
+                         (json/write-str {:no-id "notif-2"})
+                         (json/write-str {:id "id"}))
+             socket-file (str (File/createTempFile "socket-file-" nil))
+             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
+         ;; start socket server and send `msg`
+         (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
+         (Thread/sleep 1000) ;; wait for socket server to start
+         (-> socket-file rpc/connect-to rpc/read))
+       {:id "id"}))
+  (is (=
+       (let [msg (format "%s\n\n%s\n\n%s\n\ndiscarded"
+                         (json/write-str {:no-id "notif-1"})
+                         (json/write-str {:no-id "notif-2"})
+                         (json/write-str {:id "id"}))
+             socket-file (str (File/createTempFile "socket-file-" nil))
+             send-msg-cmd (format "echo '%s' | nc -U %s -l" msg socket-file)]
+         ;; start socket server and send `msg`
+         (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
+         (Thread/sleep 1000) ;; wait for socket server to start
+         (let [resp-and-notifs (atom nil)
+               notifs (chan)
+               socket-channel (rpc/connect-to socket-file)
+               resp (future (rpc/read socket-channel notifs))]
+           (loop [notif (<!! notifs)]
+             (if (= notif :no-more)
+               (swap! resp-and-notifs conj @resp)
+               (do
+                 (swap! resp-and-notifs conj notif)
+                 (recur (<!! notifs)))))
+           @resp-and-notifs))
+       '({:id "id"} {:no-id "notif-2"} {:no-id "notif-1"}))))
 
 (deftest call-test
   ;; test that we raise an error if we receive a response

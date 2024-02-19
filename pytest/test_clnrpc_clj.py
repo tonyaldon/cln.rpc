@@ -66,6 +66,46 @@ def test_call(node_factory):
                                                        "message":"missing required parameter: label"}
 
 
+def test_call_with_enable_notifications(node_factory):
+    plugin = os.path.join(os.getcwd(), "notify.py")
+    l1 = node_factory.get_node(options={"plugin": plugin})
+    l1_info = l1.rpc.getinfo()
+    l1_socket_file = os.path.join(l1_info["lightning-dir"], "lightning-rpc")
+
+    # Call send-message-notifications defined in notify.py plugin.
+    # Accumulate in an array the 3 notifications queued in a channel
+    # and the response at the end
+    cmd = f"clojure -X rpc/call-send-message-notifications-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
+    cmd_str = os.popen(cmd).read()
+    assert json.loads(cmd_str) == ["foo","bar","baz",{"foo":"bar"}]
+
+    # Call send-message-notifications defined in notify.py plugin.
+    # Do not enable notifications.
+    cmd = f"clojure -X rpc/call-send-message-notifications-without-enable-notifications :socket-file '\"{l1_socket_file}\"'"
+    cmd_str = os.popen(cmd).read()
+    assert json.loads(cmd_str) == {"foo":"bar"}
+
+    # Call send-progress-notifications defined in notify.py plugin.
+    # Accumulate in an array the 3 notifications queued in a channel
+    # and the response at the end
+    cmd = f"clojure -X rpc/call-send-progress-notifications-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
+    cmd_str = os.popen(cmd).read()
+    assert json.loads(cmd_str) == [0,1,2,{"foo":"bar"}]
+
+    # Call send-progress-notifications defined in notify.py plugin.
+    # Do not enable notifications.
+    cmd = f"clojure -X rpc/call-send-progress-notifications-without-enable-notifications :socket-file '\"{l1_socket_file}\"'"
+    cmd_str = os.popen(cmd).read()
+    assert json.loads(cmd_str) == {"foo":"bar"}
+
+    # Call getinfo with notifications enabled.
+    # Accumulate in an array the notifications (they are none) queued in a channel
+    # and the response at the end
+    cmd = f"clojure -X rpc/call-getinfo-with-enable-notifications :socket-file '\"{l1_socket_file}\"'"
+    cmd_str = os.popen(cmd).read()
+    assert json.loads(cmd_str) == [l1_info]
+
+
 def test_unix_socket_path_too_long(node_factory, bitcoind, directory, executor, db_provider):
     lightning_dir = os.path.join(directory, "path-too-long-" * 15)
     os.makedirs(lightning_dir)

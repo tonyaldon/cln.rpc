@@ -4,7 +4,7 @@
   com.brunobonacci/mulog {:mvn/version "0.9.0"}
   babashka/fs {:mvn/version "0.5.20"}
   zprint/zprint {:mvn/version "1.2.4"}
-  }
+  org.clojure/core.async {:mvn/version "1.6.681"}}
 
  :aliases
  {:test {:extra-paths ["test"]

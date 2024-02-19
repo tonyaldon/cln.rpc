@@ -5,6 +5,7 @@
   (:require [clojure.string :as str])
   (:require [com.brunobonacci.mulog :as u])
   (:require [babashka.fs :as fs])
+  (:require [clojure.core.async :refer [>!!]])
   (:import java.nio.channels.SocketChannel
            java.net.StandardProtocolFamily
            java.net.UnixDomainSocketAddress
@@ -13,22 +14,58 @@
 
 (defn read
   "Return the response sent by lightningd over SOCKET-CHANNEL.
-  Also, close SOCKET-CHANNEL."
+  Also, close SOCKET-CHANNEL.
+
+  If NOTIFS is a channel (from async.core) and we enabled (before)
+  notifications for the JSON-RPC connection SOCKET-CHANNEL with
+  `enable-nofications` queue in NOTIFS (with async/>!!) 'message'
+  and 'progress' notifications sent by lightningd.
+
+  See CLN 'notifications' method."
+  ([socket-channel]
+   (read socket-channel nil))
+  ([socket-channel notifs]
+   (let [resp
+         (loop [bb (ByteBuffer/allocate 1024)
+                resp-acc ""]
+           (if (str/includes? resp-acc "\n\n")
+             (let [resps (str/split resp-acc #"\n\n")
+                   resp-str (first resps)
+                   resp (json/read-str resp-str :key-fn keyword)]
+               (if (some #{:id} (keys resp)) ;; For some reason, (contains? resp :id) doesn't work here!
+                 (do
+                   (when notifs (>!! notifs :no-more))
+                   resp)
+                 (do
+                   (when notifs (>!! notifs resp))
+                   (recur bb (subs resp-acc (+ (count resp-str) 2))))))
+             (do
+               (.read socket-channel bb)
+               (.flip bb)
+               (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))]
+                 (.clear bb)
+                 (recur bb (str resp-acc bb-str))))))]
+     (.close socket-channel)
+     resp)))
+
+(defn enable-nofications
+  "Enable notifications for the JSON-RPC connection SOCKET-CHANNEL."
   [socket-channel]
-  (let [resp
-        (loop [bb (ByteBuffer/allocate 1024)
-               resp-acc ""]
-          (.read socket-channel bb)
-          (.flip bb)
-          (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))
-                r (str resp-acc bb-str)]
-            (if (str/includes? r "\n\n")
-              (first (str/split r #"\n\n"))
-              (do
-                (.clear bb)
-                (recur bb r)))))]
-    (.close socket-channel)
-    resp))
+  ;; enable 'message' and 'progress' notifications
+  (let [req {:jsonrpc "2.0"
+             :method "notifications"
+             :params {:enable true}
+             :id "notify"}
+        req-str (str (json/write-str req :escape-slash false) "\n\n")]
+    (->> req-str .getBytes ByteBuffer/wrap (.write socket-channel)))
+  (loop [bb (ByteBuffer/allocate 1024)
+         resp-acc ""]
+    (when-not (str/includes? resp-acc "\n\n")
+      (.read socket-channel bb)
+      (.flip bb)
+      (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))]
+        (.clear bb)
+        (recur bb (str resp-acc bb-str))))))
 
 (defn symlink [target]
   (let [filename (str "lightning-rpc-" (subs (str (random-uuid)) 0 18))
@@ -136,6 +173,7 @@
    (call rpc-info method params nil))
   ([rpc-info method params filter]
    (let [channel (connect-to (:socket-file rpc-info))
+         notifs (:notifs rpc-info)
          req-id (format "%s:%s#%s"
                         (or (:json-id-prefix rpc-info) "clnrpc-clj")
                         method (int (rand 100000)))
@@ -145,9 +183,10 @@
                      :id req-id}
                     (or (and filter {:filter filter}) nil))
          req-str (json/write-str req :escape-slash false)]
+     (when notifs (enable-nofications channel))
      (->> req-str .getBytes ByteBuffer/wrap (.write channel))
      (u/log ::request-sent :req req :req-id req-id :req-str req-str)
-     (let [resp (-> (read channel) (json/read-str :key-fn keyword))
+     (let [resp (read channel notifs)
            resp-id (:id resp)]
        (if (= resp-id req-id)
          (if-let [error (:error resp)]
