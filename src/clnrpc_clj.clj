@@ -250,7 +250,7 @@
   ([rpc-info method params]
    (call rpc-info method params nil))
   ([rpc-info method params filter]
-   (let [channel (connect-to (:socket-file rpc-info))
+   (let [socket-channel (connect-to (:socket-file rpc-info))
          notifs (:notifs rpc-info)
          req-id (format "%s:%s#%s"
                         (or (:json-id-prefix rpc-info) "clnrpc-clj")
@@ -261,10 +261,10 @@
                      :id req-id}
                     (or (and filter {:filter filter}) nil))
          req-str (json/write-str req :escape-slash false)]
-     (when notifs (enable-nofications channel))
-     (->> req-str .getBytes ByteBuffer/wrap (.write channel))
+     (when notifs (enable-nofications socket-channel))
+     (->> req-str .getBytes ByteBuffer/wrap (.write socket-channel))
      (u/log ::request-sent :req req :req-id req-id :req-str req-str)
-     (let [resp (read channel notifs)
+     (let [resp (read socket-channel notifs)
            resp-id (:id resp)]
        (if (= resp-id req-id)
          (if-let [error (:error resp)]
