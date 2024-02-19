@@ -14,7 +14,6 @@
 
 (defn read
   "Return the response sent by lightningd over SOCKET-CHANNEL.
-  Also, close SOCKET-CHANNEL.
 
   If NOTIFS is a channel (from clojure.core.async) and we enabled
   (before) notifications for the JSON-RPC connection SOCKET-CHANNEL
@@ -25,28 +24,25 @@
   ([socket-channel]
    (read socket-channel nil))
   ([socket-channel notifs]
-   (let [resp
-         (loop [bb (ByteBuffer/allocate 1024)
-                resp-acc ""]
-           (if (str/includes? resp-acc "\n\n")
-             (let [resps (str/split resp-acc #"\n\n")
-                   resp-str (first resps)
-                   resp (json/read-str resp-str :key-fn keyword)]
-               (if (some #{:id} (keys resp)) ;; For some reason, (contains? resp :id) doesn't work here!
-                 (do
-                   (when notifs (>!! notifs :no-more))
-                   resp)
-                 (do
-                   (when notifs (>!! notifs resp))
-                   (recur bb (subs resp-acc (+ (count resp-str) 2))))))
-             (do
-               (.read socket-channel bb)
-               (.flip bb)
-               (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))]
-                 (.clear bb)
-                 (recur bb (str resp-acc bb-str))))))]
-     (.close socket-channel)
-     resp)))
+   (loop [bb (ByteBuffer/allocate 1024)
+          resp-acc ""]
+     (if (str/includes? resp-acc "\n\n")
+       (let [resps (str/split resp-acc #"\n\n")
+             resp-str (first resps)
+             resp (json/read-str resp-str :key-fn keyword)]
+         (if (some #{:id} (keys resp)) ;; For some reason, (contains? resp :id) doesn't work here!
+           (do
+             (when notifs (>!! notifs :no-more))
+             resp)
+           (do
+             (when notifs (>!! notifs resp))
+             (recur bb (subs resp-acc (+ (count resp-str) 2))))))
+       (do
+         (.read socket-channel bb)
+         (.flip bb)
+         (let [bb-str (str (.decode StandardCharsets/UTF_8 bb))]
+           (.clear bb)
+           (recur bb (str resp-acc bb-str))))))))
 
 (defn enable-nofications
   "Enable notifications for the JSON-RPC connection SOCKET-CHANNEL."
@@ -265,6 +261,7 @@
      (->> req-str .getBytes ByteBuffer/wrap (.write socket-channel))
      (u/log ::request-sent :req req :req-id req-id :req-str req-str)
      (let [resp (read socket-channel notifs)
+           _ (.close socket-channel)
            resp-id (:id resp)]
        (if (= resp-id req-id)
          (if-let [error (:error resp)]

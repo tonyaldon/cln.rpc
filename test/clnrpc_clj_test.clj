@@ -17,7 +17,10 @@
          ;; start socket server and send `msg`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
-         (-> socket-file rpc/connect-to rpc/read))
+         (let [socket-channel (rpc/connect-to socket-file)
+               resp (rpc/read socket-channel)]
+           (.close socket-channel)
+           resp))
        {:id "id"}))
   (is (=
        (let [msg (format "%s\n\n%s\n\n%s\n\ndiscarded"
@@ -29,7 +32,10 @@
          ;; start socket server and send `msg`
          (.start (Thread. (fn [] (sh "bash" "-c" send-msg-cmd))))
          (Thread/sleep 1000) ;; wait for socket server to start
-         (-> socket-file rpc/connect-to rpc/read))
+         (let [socket-channel (rpc/connect-to socket-file)
+               resp (rpc/read socket-channel)]
+           (.close socket-channel)
+           resp))
        {:id "id"}))
   (is (=
        (let [msg (format "%s\n\n%s\n\n%s\n\ndiscarded"
@@ -51,6 +57,7 @@
                (do
                  (swap! resp-and-notifs conj notif)
                  (recur (<!! notifs)))))
+           (.close socket-channel)
            @resp-and-notifs))
        '({:id "id"} {:no-id "notif-2"} {:no-id "notif-1"}))))
 
