@@ -5,6 +5,25 @@
 
 (in-ns 'clnrpc-clj)
 
+(def rpcmethods
+  ["addgossip" "addpsbtoutput" "autoclean-once" "autoclean-status"
+   "autocleaninvoice" "batching" "blacklistrune" "checkmessage" "checkrune"
+   "close" "commando-blacklist" "commando-listrunes" "commando-rune" "commando"
+   "connect" "createinvoice" "createonion" "createrune" "datastore"
+   "datastoreusage" "decode" "decodepay" "deldatastore" "delexpiredinvoice"
+   "delforward" "delinvoice" "delpay" "disableinvoicerequest" "disconnect"
+   "emergencyrecover" "feerates" "fetchinvoice" "fundchannel" "fundpsbt"
+   "getinfo" "getroute" "invoice" "invoicerequest" "keysend" "listchannels"
+   "listclosedchannels" "listdatastore" "listforwards" "listfunds" "listhtlcs"
+   "listinvoicerequests" "listinvoices" "listnodes" "listpays"
+   "listpeerchannels" "listpeers" "listsendpays" "listsqlschemas"
+   "listtransactions" "makesecret" "newaddr" "pay" "ping" "preapproveinvoice"
+   "preapprovekeysend" "recoverchannel" "sendcustommsg" "sendonion" "sendpay"
+   "sendpsbt" "setchannel" "setconfig" "showrunes" "signinvoice" "signmessage"
+   "signpsbt" "splice_init" "splice_signed" "splice_update" "sql" "staticbackup"
+   "stop" "txdiscard" "txprepare" "txsend" "upgradewallet" "utxopsbt" "wait"
+   "waitanyinvoice" "waitblockheight" "waitinvoice" "waitsendpay" "withdraw"])
+
 (defn addgossip
   "Send addgossip request to lightningd via unix socket.
 
