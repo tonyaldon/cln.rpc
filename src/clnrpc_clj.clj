@@ -256,7 +256,7 @@
                      :params (or params [])
                      :id req-id}
                     (or (and filter {:filter filter}) nil))
-         req-str (json/write-str req :escape-slash false)]
+         req-str (str (json/write-str req :escape-slash false) "\n\n")]
      (when notifs (enable-nofications socket-channel))
      (->> req-str .getBytes ByteBuffer/wrap (.write socket-channel))
      (u/log ::request-sent :req req :req-id req-id :req-str req-str)
