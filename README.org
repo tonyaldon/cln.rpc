@@ -2,8 +2,7 @@ Core Lightning JSON-RPC client for Clojure.
 
 * Dependency
 
-Add the following dependency to your ~deps.edn~ file (the repository is
-private):
+Add the following dependency to your ~deps.edn~ file:
 
 ** Tested with Core Lightning v24.02
 
