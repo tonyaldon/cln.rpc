@@ -9,7 +9,7 @@ readme = "README.org"
 python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
-pyln-testing = "^23.11"
+pyln-testing = "^24.02"
 
 [build-system]
 requires = ["poetry-core"]
