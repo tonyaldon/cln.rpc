@@ -1,6 +1,6 @@
 .PHONY: pytest cljtest test rpcmethods
 
-CLN_TAG=v23.11
+CLN_TAG=v24.02
 
 cljtest:
 	clojure -X:test

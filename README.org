@@ -118,3 +118,12 @@ following:
 #+BEGIN_SRC tms
 $ make cljtest
 #+END_SRC
+
+* Notes
+
+** clnrpc-clj v24.02
+
+The following methods have been added to ~clnrpc-clj~ namespace as
+functions: ~bkpr-listincome~, ~fundchannel_cancel~, ~fundchannel_complete~,
+~fundchannel_start~, ~listoffers~, ~multifundchannel~, ~offer~ and
+~openchannel_init~.
