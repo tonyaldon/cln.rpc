@@ -90,7 +90,7 @@ in the namespace ~clnrpc-clj~ with the same name of the builtin methods.
 To do so, run:
 
 #+BEGIN_SRC tms
-make rpcmethods
+$ make rpcmethods
 #+END_SRC
 
 * Tests

@@ -1,4 +1,4 @@
-(ns clnrpc-utils
+(ns gen-rpcmethods
   "Generate functions from files in schemas CLN directory.
 
   Each function generated can be used to do RPC calls to CLN for a specific

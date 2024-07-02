@@ -11,4 +11,4 @@ pytest:
 test: cljtest pytest
 
 rpcmethods:
-	clojure -X clnrpc-utils/generate-rpcmethods :tag '"$(CLN_TAG)"'
+	clojure -X:gen-rpcmethods :tag '"$(CLN_TAG)"'
