@@ -25,11 +25,11 @@ def test_call(node_factory):
     assert json.loads(getinfo_str) == l1_info
 
     # Check the jsonrpc id used in the getinfo request to lightningd
-    # 1) default prefix: clnrpc-clj
+    # 1) default prefix: cln.rpc
     jsonrpc_id_cmd = f"clojure -X rpc/jsonrpc-id :socket-file '\"{l1_socket_file}\"'"
     jsonrpc_id_str = os.popen(jsonrpc_id_cmd).read()
     print(jsonrpc_id_str)
-    assert re.search(r"^clnrpc-clj:getinfo#[0-9]+$", jsonrpc_id_str)
+    assert re.search(r"^cln\.rpc:getinfo#[0-9]+$", jsonrpc_id_str)
     # 2) custom prefix: my-prefix
     jsonrpc_id_cmd = f"clojure -X rpc/jsonrpc-id :socket-file '\"{l1_socket_file}\"' :json-id-prefix '\"my-prefix\"'"
     jsonrpc_id_str = os.popen(jsonrpc_id_cmd).read()
@@ -128,13 +128,13 @@ def test_generated_rpcmethods(node_factory):
     l1_info = l1.rpc.getinfo()
     l1_socket_file = os.path.join(l1_info["lightning-dir"], "lightning-rpc")
 
-    # getinfo request with clnrpc-clj/getinfo function
+    # getinfo request with tonyaldon.cln.rpc.core/getinfo function
     # params: 0 required / 0 optional
     getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{l1_socket_file}\"'"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == l1_info
 
-    # newaddr request with clnrpc-clj/newaddr function
+    # newaddr request with tonyaldon.cln.rpc.core/newaddr function
     # params: 0 required / 1 optional
     newaddr_cmd = f"clojure -X rpc/newaddr :socket-file '\"{l1_socket_file}\"'"
     newaddr = json.loads(os.popen(newaddr_cmd).read())
@@ -143,14 +143,14 @@ def test_generated_rpcmethods(node_factory):
     newaddr_p2tr = json.loads(os.popen(newaddr_p2tr_cmd).read())
     assert newaddr_p2tr.get("p2tr", False)
 
-    # decode request with clnrpc-clj/decode function
+    # decode request with tonyaldon.cln.rpc.core/decode function
     # params: 1 required / 0 optional
     bolt11 = l1.rpc.invoice(10000,"label", "description")["bolt11"]
     decode_cmd = f"clojure -X rpc/decode :socket-file '\"{l1_socket_file}\"' :string '\"{bolt11}\"'"
     decode_str = os.popen(decode_cmd).read()
     assert json.loads(decode_str) == l1.rpc.decode(bolt11)
 
-    # invoice request with clnrpc-clj/invoice function
+    # invoice request with tonyaldon.cln.rpc.core/invoice function
     # params: params: 3 required / 6 optional
     invoice_cmd = f"clojure -X rpc/invoice :socket-file '\"{l1_socket_file}\"'"
     invoice = json.loads(os.popen(invoice_cmd).read())

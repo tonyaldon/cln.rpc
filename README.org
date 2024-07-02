@@ -8,7 +8,7 @@ Add the following dependency to your ~deps.edn~ file:
 
 #+BEGIN_SRC clojure
 {:deps
- {io.github.tonyaldon/clnrpc-clj
+ {io.github.tonyaldon/cln.rpc
   {:git/tag "v24.02" :git/sha "e5e57fa"}}}
 #+END_SRC
 
@@ -16,7 +16,7 @@ Add the following dependency to your ~deps.edn~ file:
 
 #+BEGIN_SRC clojure
 {:deps
- {io.github.tonyaldon/clnrpc-clj
+ {io.github.tonyaldon/cln.rpc
   {:git/tag "v23.11" :git/sha "c860b3c"}}}
 #+END_SRC
 
@@ -30,7 +30,8 @@ There is two ways to do RPC calls to ~lightningd~:
 For instance, we can send a ~getinfo~ request to ~lightningd~ in two ways:
 
 #+BEGIN_SRC clojure
-(require '[clnrpc-clj :as rpc])
+;; (require '[clnrpc-clj :as rpc]) ;; for version v23.11 or v24.02
+(require '[tonyaldon.cln.rpc.core :as rpc])
 
 ;; We assume we have a node running on regtest
 (def rpc-info
@@ -47,7 +48,8 @@ And in the case the method takes arguments, like the ~invoice~ method
 for instance, we can do this:
 
 #+BEGIN_SRC clojure
-(require '[clnrpc-clj :as rpc])
+;; (require '[clnrpc-clj :as rpc]) ;; for version v23.11 or v24.02
+(require '[tonyaldon.cln.rpc.core :as rpc])
 
 ;; We assume we have a node running on regtest
 (def rpc-info
@@ -79,13 +81,14 @@ Note that not all the builtin ~lightningd~ methods are defined.  Indeed,
 they are generated from the files in CLN ~doc/schemas~ directory and not
 all the builtin methods have a corresponding schema file.
 
-To see more details, check ~clnrpc-clj/call~ docstring.
+To see more details, check ~tonyaldon.cln.rpc.core/call~ docstring.
 
 * Generate CLN RPC methods from CLN schemas directory
 
 The directory ~doc/schemas~ of CLN contains JSON schemas describing
 almost all the builtin methods.  We use it to generate the functions
-in the namespace ~clnrpc-clj~ with the same name of the builtin methods.
+in the namespace ~tonyaldon.cln.rpc.core~ with the same name of the
+builtin methods.
 
 To do so, run:
 
@@ -108,8 +111,8 @@ To install ~poetry~, see https://python-poetry.org.
 Note that you only need to enter in the ~poetry~ shell (and install the
 Python dependencies) once.
 
-To test ~clnrpc-clj~ against Core Lightning using ~pyln-testing~
-library, run the following:
+To test ~cln.rpc~ against Core Lightning using ~pyln-testing~ library, run
+the following:
 
 #+BEGIN_SRC tms
 $ poetry shell
@@ -127,6 +130,11 @@ $ make cljtest
 #+END_SRC
 
 * Notes
+
+** cln.rpc v24.05
+
+The library has been renamed from ~clnrpc-clj~ to ~cln.rpc~ and the
+library namespace too: ~clnrpc-clj~ -> ~tonyaldon.cln.rpc.core~.
 
 ** clnrpc-clj v24.02
 

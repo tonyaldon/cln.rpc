@@ -1,5 +1,5 @@
 (ns rpc
-  (:require [clnrpc-clj :as rpc])
+  (:require [tonyaldon.cln.rpc.core :as rpc])
   (:require [clojure.data.json :as json])
   (:require [com.brunobonacci.mulog :as u])
   (:require [clojure.edn :as edn])
@@ -140,7 +140,7 @@
     (with-open [in (java.io.PushbackReader. (io/reader log-file))]
       (loop [read-more true]
         (when-let [event (edn/read {:default tagged-literal :eof nil} in)]
-          (if (= (:mulog/event-name event) :clnrpc-clj/request-sent)
+          (if (= (:mulog/event-name event) :tonyaldon.cln.rpc.core/request-sent)
             (print (:req-id event))
             (recur true)))))))
 

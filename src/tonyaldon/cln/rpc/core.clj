@@ -1,4 +1,4 @@
-(ns clnrpc-clj
+(ns tonyaldon.cln.rpc.core
   "Core Lightning JSON-RPC client."
   (:refer-clojure :exclude [read])
   (:require [clojure.data.json :as json])
@@ -93,7 +93,7 @@
   The connection is done via :socket-file specified in RPC-INFO.
 
   :json-id-prefix key of RPC-INFO is used as the first part of
-  the JSON-RPC request id.  Default value is \"clnrpc-clj\".  For a
+  the JSON-RPC request id.  Default value is \"cln.rpc\".  For a
   getinfo call with :json-id-prefix being \"my-prefix\" the request
   id looks like this:
 
@@ -166,7 +166,7 @@
       ;; {:code -32601, :message \"Unknown command 'foo'\"}
 
   Some commands may send 'message' or 'progress' notifications
-  while they are processing the request.  clnrpc-clj can receive those
+  while they are processing the request.  cln.rpc can receive those
   notifications.  To enable this, we just have to pass a channel
   (from clojure.core.async) in RPC-INFO argument as value of :notifs
   key.  The notifications will then be queued (with `>!!`) in that
@@ -216,7 +216,7 @@
           \"foo\": \"bar\"
       }
 
-  Now let's do it with clnrpc-clj.
+  Now let's do it with cln.rpc.
 
   We define a channel notifs that we pass to call function that will
   queue the notifications sent by notify.py plugin before returning
@@ -225,7 +225,7 @@
   where we accumulate them in a vector and in which we also append
   the response.  Finally, we return that array:
 
-      (require '[clnrpc-clj :as rpc])
+      (require '[tonyaldon.cln.rpc.core :as rpc])
       (require '[clojure.core.async :refer [<!! go chan]])
 
       (let [notifs (chan)
@@ -248,7 +248,7 @@
    (let [socket-channel (connect-to (:socket-file rpc-info))
          notifs (:notifs rpc-info)
          req-id (format "%s:%s#%s"
-                        (or (:json-id-prefix rpc-info) "clnrpc-clj")
+                        (or (:json-id-prefix rpc-info) "cln.rpc")
                         method (int (rand 100000)))
          filter (:filter rpc-info)
          req (merge {:jsonrpc "2.0"

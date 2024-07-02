@@ -1,7 +1,7 @@
-(ns clnrpc-clj-test
-  "Test clnrpc-clj library."
+(ns tonyaldon.cln.rpc.core-test
+  "Test tonyaldon.cln.rpc.core namespace."
   (:require [clojure.test :refer :all])
-  (:require [clnrpc-clj :as rpc])
+  (:require [tonyaldon.cln.rpc.core :as rpc])
   (:require [clojure.java.shell :refer [sh]])
   (:import java.io.File)
   (:require [babashka.fs :as fs])

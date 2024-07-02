@@ -3,4 +3,4 @@
   org.clojure/data.json {:mvn/version "2.5.0"}
   com.brunobonacci/mulog {:mvn/version "0.9.0"}
   org.clojure/core.async {:mvn/version "1.6.681"}
-  clnrpc-clj/clnrpc-clj {:local/root ".."}}}
+  com.tonyaldon/cln.rpc {:local/root ".."}}}
