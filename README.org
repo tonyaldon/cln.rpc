@@ -2,22 +2,8 @@ Core Lightning JSON-RPC client for Clojure.
 
 * Dependency
 
-Add the following dependency to your ~deps.edn~ file:
-
-** Tested with Core Lightning v24.02
-
 #+BEGIN_SRC clojure
-{:deps
- {io.github.tonyaldon/cln.rpc
-  {:git/tag "v24.02" :git/sha "e5e57fa"}}}
-#+END_SRC
-
-** Tested with Core Lightning v23.11
-
-#+BEGIN_SRC clojure
-{:deps
- {io.github.tonyaldon/cln.rpc
-  {:git/tag "v23.11" :git/sha "c860b3c"}}}
+com.tonyaldon/cln.rpc {:mvn/version "24.05"}
 #+END_SRC
 
 * Usage
@@ -130,15 +116,40 @@ $ make cljtest
 #+END_SRC
 
 * Notes
-
 ** cln.rpc v24.05
 
 The library has been renamed from ~clnrpc-clj~ to ~cln.rpc~ and the
 library namespace too: ~clnrpc-clj~ -> ~tonyaldon.cln.rpc~.
 
+The following methods have been added to ~tonyaldon.cln.rpc~ namespace
+as functions: ~bkpr-channelsapy~, ~bkpr-dumpincomecsv~, ~bkpr-inspect~,
+~bkpr-listaccountevents~, ~bkpr-listbalances~, ~check~, ~deprecations~,
+~dev-forget-channel~, ~disableoffer~, ~funderupdate~, ~getlog~, ~help~,
+~listconfigs~, ~multiwithdraw~, ~notifications~, ~openchannel_abort~,
+~openchannel_bump~, ~openchannel_signed~, ~openchannel_update~,
+~parsefeerate~, ~plugin~, ~recover~, ~renepay~, ~renepaystatus~, ~reserveinputs~,
+~sendinvoice~, ~sendonionmessage~, ~setpsbtversion~, ~sql-template~,
+~unreserveinputs~.
+
+The following methods have been removed: ~delexpiredinvoice~ and ~sql~.
+
 ** clnrpc-clj v24.02
+*** Dependency: Tested with Core Lightning v24.02
+
+#+BEGIN_SRC clojure
+io.github.tonyaldon/cln.rpc {:git/tag "v24.02" :git/sha "e5e57fa"}
+#+END_SRC
+
+*** RPC methods generated as functions
 
 The following methods have been added to ~clnrpc-clj~ namespace as
 functions: ~bkpr-listincome~, ~fundchannel_cancel~, ~fundchannel_complete~,
 ~fundchannel_start~, ~listoffers~, ~multifundchannel~, ~offer~ and
 ~openchannel_init~.
+
+** clnrpc-clj v23.11
+*** Dependency: Tested with Core Lightning v23.11
+
+#+BEGIN_SRC clojure
+io.github.tonyaldon/cln.rpc {:git/tag "v23.11" :git/sha "c860b3c"}
+#+END_SRC
