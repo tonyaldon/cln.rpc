@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "com.tonyaldon/cln.rpc"
-version = "24.02"
+version = "24.05"
 description = "Core Lightning JSON-RPC client for Clojure."
 authors = ["Tony Aldon <tony@tonyaldon.com>"]
 readme = "README.org"
@@ -9,7 +9,7 @@ readme = "README.org"
 python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
-pyln-testing = "^24.02"
+pyln-testing = "^24.05"
 
 [build-system]
 requires = ["poetry-core"]
