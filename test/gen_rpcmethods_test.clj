@@ -131,7 +131,7 @@
 
   The connection is done via :socket-file specified in RPC-INFO.
   :json-id-prefix key of RPC-INFO is used as the first part of
-  the JSON-RPC request id.  See tonyaldon.cln.rpc.core/call for more details.
+  the JSON-RPC request id.  See tonyaldon.cln.rpc/call for more details.
 
   FOO-REQ
       - type: foo-req-type
@@ -198,7 +198,7 @@
 
   The connection is done via :socket-file specified in RPC-INFO.
   :json-id-prefix key of RPC-INFO is used as the first part of
-  the JSON-RPC request id.  See tonyaldon.cln.rpc.core/call for more details.
+  the JSON-RPC request id.  See tonyaldon.cln.rpc/call for more details.
 
   FOO-REQ
       - type: foo-req-type
@@ -222,7 +222,7 @@
 
   The connection is done via :socket-file specified in RPC-INFO.
   :json-id-prefix key of RPC-INFO is used as the first part of
-  the JSON-RPC request id.  See tonyaldon.cln.rpc.core/call for more details.
+  the JSON-RPC request id.  See tonyaldon.cln.rpc/call for more details.
 
   Use OPT-PARAMS to set optional parameters of the request.
   The following keyword argument(s) can be passed with values:
@@ -245,7 +245,7 @@
 
   The connection is done via :socket-file specified in RPC-INFO.
   :json-id-prefix key of RPC-INFO is used as the first part of
-  the JSON-RPC request id.  See tonyaldon.cln.rpc.core/call for more details.")))
+  the JSON-RPC request id.  See tonyaldon.cln.rpc/call for more details.")))
 
 ;; (run-test docstring-test)
 

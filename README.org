@@ -31,7 +31,7 @@ For instance, we can send a ~getinfo~ request to ~lightningd~ in two ways:
 
 #+BEGIN_SRC clojure
 ;; (require '[clnrpc-clj :as rpc]) ;; for version v23.11 or v24.02
-(require '[tonyaldon.cln.rpc.core :as rpc])
+(require '[tonyaldon.cln.rpc :as rpc])
 
 ;; We assume we have a node running on regtest
 (def rpc-info
@@ -49,7 +49,7 @@ for instance, we can do this:
 
 #+BEGIN_SRC clojure
 ;; (require '[clnrpc-clj :as rpc]) ;; for version v23.11 or v24.02
-(require '[tonyaldon.cln.rpc.core :as rpc])
+(require '[tonyaldon.cln.rpc :as rpc])
 
 ;; We assume we have a node running on regtest
 (def rpc-info
@@ -81,13 +81,13 @@ Note that not all the builtin ~lightningd~ methods are defined.  Indeed,
 they are generated from the files in CLN ~doc/schemas~ directory and not
 all the builtin methods have a corresponding schema file.
 
-To see more details, check ~tonyaldon.cln.rpc.core/call~ docstring.
+To see more details, check ~tonyaldon.cln.rpc/call~ docstring.
 
 * Generate CLN RPC methods from CLN schemas directory
 
 The directory ~doc/schemas~ of CLN contains JSON schemas describing
 almost all the builtin methods.  We use it to generate the functions
-in the namespace ~tonyaldon.cln.rpc.core~ with the same name of the
+in the namespace ~tonyaldon.cln.rpc~ with the same name of the
 builtin methods.
 
 To do so, run:
@@ -134,7 +134,7 @@ $ make cljtest
 ** cln.rpc v24.05
 
 The library has been renamed from ~clnrpc-clj~ to ~cln.rpc~ and the
-library namespace too: ~clnrpc-clj~ -> ~tonyaldon.cln.rpc.core~.
+library namespace too: ~clnrpc-clj~ -> ~tonyaldon.cln.rpc~.
 
 ** clnrpc-clj v24.02
 

@@ -128,13 +128,13 @@ def test_generated_rpcmethods(node_factory):
     l1_info = l1.rpc.getinfo()
     l1_socket_file = os.path.join(l1_info["lightning-dir"], "lightning-rpc")
 
-    # getinfo request with tonyaldon.cln.rpc.core/getinfo function
+    # getinfo request with tonyaldon.cln.rpc/getinfo function
     # params: 0 required / 0 optional
     getinfo_cmd = f"clojure -X rpc/getinfo :socket-file '\"{l1_socket_file}\"'"
     getinfo_str = os.popen(getinfo_cmd).read()
     assert json.loads(getinfo_str) == l1_info
 
-    # newaddr request with tonyaldon.cln.rpc.core/newaddr function
+    # newaddr request with tonyaldon.cln.rpc/newaddr function
     # params: 0 required / 1 optional
     newaddr_cmd = f"clojure -X rpc/newaddr :socket-file '\"{l1_socket_file}\"'"
     newaddr = json.loads(os.popen(newaddr_cmd).read())
@@ -143,14 +143,14 @@ def test_generated_rpcmethods(node_factory):
     newaddr_p2tr = json.loads(os.popen(newaddr_p2tr_cmd).read())
     assert newaddr_p2tr.get("p2tr", False)
 
-    # decode request with tonyaldon.cln.rpc.core/decode function
+    # decode request with tonyaldon.cln.rpc/decode function
     # params: 1 required / 0 optional
     bolt11 = l1.rpc.invoice(10000,"label", "description")["bolt11"]
     decode_cmd = f"clojure -X rpc/decode :socket-file '\"{l1_socket_file}\"' :string '\"{bolt11}\"'"
     decode_str = os.popen(decode_cmd).read()
     assert json.loads(decode_str) == l1.rpc.decode(bolt11)
 
-    # invoice request with tonyaldon.cln.rpc.core/invoice function
+    # invoice request with tonyaldon.cln.rpc/invoice function
     # params: params: 3 required / 6 optional
     invoice_cmd = f"clojure -X rpc/invoice :socket-file '\"{l1_socket_file}\"'"
     invoice = json.loads(os.popen(invoice_cmd).read())

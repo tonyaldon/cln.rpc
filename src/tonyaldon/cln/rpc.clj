@@ -1,4 +1,4 @@
-(ns tonyaldon.cln.rpc.core
+(ns tonyaldon.cln.rpc
   "Core Lightning JSON-RPC client."
   (:refer-clojure :exclude [read])
   (:require [clojure.data.json :as json])
@@ -225,7 +225,7 @@
   where we accumulate them in a vector and in which we also append
   the response.  Finally, we return that array:
 
-      (require '[tonyaldon.cln.rpc.core :as rpc])
+      (require '[tonyaldon.cln.rpc :as rpc])
       (require '[clojure.core.async :refer [<!! go chan]])
 
       (let [notifs (chan)
@@ -276,4 +276,4 @@
                    resp-id resp req)
            {:resp-id resp-id :req-id req-id :resp resp :req req})))))))
 
-(load "rpcmethods")
+(load "rpc/rpcmethods")
